@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
- 
+
 jobs:  
   build-docker-images:
     runs-on: ubuntu-latest
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          repository: 'Greatify/heycampusUniversity'  # Replace with your final repo's username and repository name
+          repository: 'Greatify/heycampusUniversity'
           ref: 'petchi'
           token: ${{ secrets.REPO_DISPATCH_TOKEN }}
 
@@ -28,12 +28,12 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Php laravel image, tag, and push image to Amazon ECR
+      - name: Build PHP Laravel image, tag, and push image to Amazon ECR
         id: build-laravel-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: managex
-          IMAGE_TAG_BACKEND: dev-laravel-${{ github.sha }}
+          IMAGE_TAG_LARAVEL: dev-laravel-${{ github.sha }}
         run: |
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL" > laravel_image_tag.txt
           docker build -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL .
@@ -54,8 +54,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          repository: 'Greatify/heycampusUniversity' # Replace with your final repo's username and repository name
-          ref: 'petchi'
+          repository: 'Greatify/ManageX-University-Deployment'
+          ref: 'main'
 
       - name: Download image tag files
         uses: actions/download-artifact@v2
@@ -67,9 +67,9 @@ jobs:
         run: |
           echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
 
-      - name: Update php laravel deployment image tag
+      - name: Update PHP Laravel deployment image tag
         run: |
-          yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' deployment/prod/uni-deploy.yaml
+          yq -i '.spec.template.spec.containers[0].image = env.LARAVEL_IMAGE' deployment/prod/uni-deploy.yaml
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -81,11 +81,11 @@ jobs:
       - name: Update kube config
         run: aws eks update-kubeconfig --name dev-stg-cluster --region ap-south-1
 
-      - name: Apply  php laravel deployment
+      - name: Apply PHP Laravel deployment
         run: |
           kubectl apply -f deployment/prod/uni-deploy.yaml -n dev-managex
 
-      - name: Apply php laravel service
+      - name: Apply PHP Laravel service
         run: |
           kubectl apply -f deployment/prod/managex-service.yaml -n dev-managex
           kubectl apply -f deployment/prod/managex-ingress.yaml -n dev-managex
@@ -95,9 +95,11 @@ jobs:
           kubectl rollout restart deployment managex-dev -n dev-managex
 
       - name: Push changes using GitHub App token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.email "github-actions@example.com"
           git config --global user.name "greatify-code-merger"
           git add -f deployment/prod/uni-deploy.yaml
           git commit -m "Update deployment image"
-          git -c http.extraheader="AUTHORIZATION: bearer ${{ steps.create-token.outputs.token }}" push origin main
+          git push origin main

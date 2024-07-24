@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: managex-dev
+  labels:
+    app: managex-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: managex-dev
+  template:
+    metadata:
+      labels:
+        app: managex-dev
+    spec:
+      containers:
+        - name: managex-dev
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex:latest--00011
+          ports:
+            - containerPort: 80

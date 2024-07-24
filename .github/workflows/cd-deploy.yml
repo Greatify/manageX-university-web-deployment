@@ -29,15 +29,15 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build Php laravel image, tag, and push image to Amazon ECR
-        id: build-backend-image
+        id: build-laravel-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: managex
           IMAGE_TAG_BACKEND: dev-laravel-${{ github.sha }}
         run: |
-          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_BACKEND" > backend_image_tag.txt
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL" > laravel_image_tag.txt
           docker build -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_BACKEND
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL
 
       - name: Upload image tag files
         uses: actions/upload-artifact@v2

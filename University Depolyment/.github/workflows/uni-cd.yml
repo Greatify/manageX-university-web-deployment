@@ -1,0 +1,63 @@
+deploy:
+    runs-on: ubuntu-latest
+    needs: [build-docker-images]
+    environment: dev
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: 'Greatify/ExamXv2_Deployment' # Replace with your final repo's username and repository name
+          ref: 'stg'
+
+      - name: Download image tag files
+        uses: actions/download-artifact@v2
+        with:
+          name: image-tags
+          path: .
+
+      - name: Set image tags as environment variables
+        run: |
+          echo "BACKEND_IMAGE=$(<backend_image_tag.txt)" >> $GITHUB_ENV
+          echo "FRONTEND_IMAGE=$(<frontend_image_tag.txt)" >> $GITHUB_ENV
+
+      - name: Update Backend Django deployment image tag
+        run: |
+          yq -i '.spec.template.spec.containers[0].image = "${{ env.BACKEND_IMAGE }}"' deployment/stg/backend-deployment.yaml
+
+      - name: Update Frontend React deployment image tag
+        run: |
+          yq -i '.spec.template.spec.containers[0].image = "${{ env.FRONTEND_IMAGE }}"' deployment/stg/frontend-deployment.yaml
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name dev-stg-cluster --region ap-south-1
+
+      - name: Apply Backend Django & Frontend React deployment
+        run: |
+          kubectl apply -f deployment/stg/backend-deployment.yaml -n stg-examxv2
+          kubectl apply -f deployment/stg/frontend-deployment.yaml -n stg-examxv2
+
+      - name: Apply Backend Django & Frontend React service
+        run: |
+          kubectl apply -f deployment/stg/backend-service.yaml -n stg-examxv2
+          kubectl apply -f deployment/stg/frontend-service.yaml -n stg-examxv2
+          kubectl apply -f deployment/stg/stg-ingress.yaml -n stg-examxv2
+
+      - name: Restart deployments
+        run: |
+          kubectl rollout restart deployment examxv2-backend -n stg-examxv2
+          kubectl rollout restart deployment examxv2-frontend -n stg-examxv2
+
+      - name: Push changes using GitHub App token
+        run: |
+          git config --global user.email "github-actions@example.com"
+          git config --global user.name "greatify-code-merger"
+          git add -f deployment/stg/backend-deployment.yaml
+          git add -f deployment/stg/frontend-deployment.yaml
+          git commit -m "Update deployment image"
+          git -c http.extraheader="AUTHORIZATION: bearer ${{ steps.create-token.outputs.token }}" push origin stg

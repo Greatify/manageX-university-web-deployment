@@ -70,6 +70,7 @@ jobs:
       - name: Update PHP Laravel deployment image tag
         run: |
           yq -i '.spec.template.spec.containers[0].image = env.LARAVEL_IMAGE' deployment/prod/uni-deploy.yaml
+          yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' deployment/prod/uni-deploy.yaml
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3

@@ -1,0 +1,103 @@
+name: ManageX-University-Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:  
+  build-docker-images:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          repository: 'Greatify/heycampusUniversity'  # Replace with your final repo's username and repository name
+          ref: 'petchi'
+          token: ${{ secrets.REPO_DISPATCH_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Php laravel image, tag, and push image to Amazon ECR
+        id: build-backend-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: managex
+          IMAGE_TAG_BACKEND: dev-laravel-${{ github.sha }}
+        run: |
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_BACKEND" > backend_image_tag.txt
+          docker build -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_BACKEND
+
+      - name: Upload image tag files
+        uses: actions/upload-artifact@v2
+        with:
+          name: image-tags
+          path: |
+            laravel_image_tag.txt
+          if-no-files-found: error
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-docker-images]
+    environment: dev
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: 'Greatify/heycampusUniversity' # Replace with your final repo's username and repository name
+          ref: 'petchi'
+
+      - name: Download image tag files
+        uses: actions/download-artifact@v2
+        with:
+          name: image-tags
+          path: .
+
+      - name: Set image tags as environment variables
+        run: |
+          echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
+
+      - name: Update php laravel deployment image tag
+        run: |
+          yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' deployment/prod/uni-deploy.yaml
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name dev-stg-cluster --region ap-south-1
+
+      - name: Apply  php laravel deployment
+        run: |
+          kubectl apply -f deployment/prod/uni-deploy.yaml -n dev-managex
+
+      - name: Apply php laravel service
+        run: |
+          kubectl apply -f deployment/prod/managex-service.yaml -n dev-managex
+          kubectl apply -f deployment/prod/managex-ingress.yaml -n dev-managex
+
+      - name: Restart deployments
+        run: |
+          kubectl rollout restart deployment managex-dev -n dev-managex
+
+      - name: Push changes using GitHub App token
+        run: |
+          git config --global user.email "github-actions@example.com"
+          git config --global user.name "greatify-code-merger"
+          git add -f deployment/prod/uni-deploy.yaml
+          git commit -m "Update deployment image"
+          git -c http.extraheader="AUTHORIZATION: bearer ${{ steps.create-token.outputs.token }}" push origin main

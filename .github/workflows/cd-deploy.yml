@@ -36,7 +36,7 @@ jobs:
           IMAGE_TAG_LARAVEL: dev-laravel-${{ github.sha }}
         run: |
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL" > laravel_image_tag.txt
-          docker build -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL .
+          docker build -f --no-cache Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL
 
       - name: Upload image tag files

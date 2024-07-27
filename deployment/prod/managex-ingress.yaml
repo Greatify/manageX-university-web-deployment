@@ -12,7 +12,7 @@ spec:
   ingressClassName: alb 
   rules: 
     - http:
-        paths:
+        paths: 
           - path: /
             pathType: Prefix
             backend:

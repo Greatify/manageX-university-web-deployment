@@ -3,7 +3,7 @@ name: ManageX-University-Deploy
 on:
   push: 
     branches: 
-      - main 
+      - main
  
 jobs:    
   build-docker-images:

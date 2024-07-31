@@ -34,6 +34,7 @@ jobs:
           ECR_REPOSITORY: managex
           IMAGE_TAG_LARAVEL: dev-laravel-${{ github.run_number }}-${{ github.sha }}-$(date +%s)
         run: |
+          echo "IMAGE_TAG_LARAVEL: $IMAGE_TAG_LARAVEL"
           echo "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL" > laravel_image_tag.txt
           docker build --no-cache -f Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG_LARAVEL

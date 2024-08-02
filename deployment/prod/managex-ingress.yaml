@@ -10,7 +10,7 @@ metadata:
     alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:399600302704:certificate/aacc2df6-2a05-4799-99a8-4ded9e7ab36c
 spec:
   ingressClassName: alb 
-  rules: 
+  rules:
     - http:
         paths: 
           - path: /

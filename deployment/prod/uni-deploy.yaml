@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: managex-dev
-          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex:dev-laravel-d6763ecca5b5be85794908a8efd285a6b3e2cfb8
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex:dev-laravel-92a95730c98c7942411c3c814adbd657a8606c9b
           ports:
             - containerPort: 80

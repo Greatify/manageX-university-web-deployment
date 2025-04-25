@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: university
+  labels:
+    app: managex-university
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 50%
+  selector:
+    matchLabels:
+      app: managex-university
+  template:
+    metadata:
+      labels:
+        app: managex-university
+      annotations:
+        kubernetes.io/change-cause: "Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005 - Increased memory request from 400Mi to 512Mi (by surya1005)"
+    spec:
+      serviceAccountName: university-service
+      volumes:
+        - name: university-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: managex-university-secrets
+        - name: university-server-configuration
+          configMap:
+            name: managex-university-server-config
+            items:
+              - key: default
+                path: default
+        - name: university-nginx-configuration
+          configMap:
+            name: managex-university-nginx-config
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+        - name: cache
+          emptyDir: {}
+        - name: testing
+          emptyDir: {}
+        - name: sessions
+          emptyDir: {}
+        - name: views
+          emptyDir: {}
+        - name: tcpdf
+          emptyDir: {}
+        - name: pending-files
+          emptyDir: {}
+        - name: efs-storage
+          persistentVolumeClaim:
+            claimName: managex-university-pvc
+      containers:
+        - name: managex-university
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: cache
+              mountPath: /var/www/html/storage/framework/cache
+            - name: sessions
+              mountPath: /var/www/html/storage/framework/sessions
+            - name: views
+              mountPath: /var/www/html/storage/framework/views
+            - name: testing
+              mountPath: /var/www/html/storage/framework/testing
+            - name: tcpdf
+              mountPath: /var/www/html/storage/app/tcpdf
+            - name: pending-files
+              mountPath: /var/www/html/resources/pending-files
+            - name: university-server-configuration
+              mountPath: /etc/nginx/sites-available/
+            - name: university-nginx-configuration
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: efs-storage
+              mountPath: /var/www/html/storage/app/efs
+              subPath: efs
+            - name: efs-storage
+              mountPath: /var/www/html/storage/app/public
+              subPath: public
+            - name: university-secrets
+              mountPath: "/var/www/html/.env"
+              subPath: ".env"
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3

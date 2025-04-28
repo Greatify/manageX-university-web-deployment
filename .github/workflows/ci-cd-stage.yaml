@@ -1,0 +1,288 @@
+name: Deploy to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_password:
+        description: 'Enter deployment password'
+        required: true
+        type: string
+
+      deploy_branch:
+        description: 'Enter branch name to deploy'
+        required: true
+        type: string
+        
+      stage_tag:
+        description: 'Tag for the image [e.g: MNX-8-fix , Sprint40]'
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+        
+jobs:        
+  Authentication:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify deployment password
+        id: password-check
+        continue-on-error: true
+        run: |
+          CORRECT_PASSWORD="${{ secrets.DEPLOY_PASSWORD }}"
+          INPUT_PASSWORD="${{ github.event.inputs.deploy_password }}"
+          
+          if [[ "$INPUT_PASSWORD" != "$CORRECT_PASSWORD" ]]; then
+            echo "::error::Invalid deployment password"
+            exit 1
+          fi
+          echo "Password verified successfully"
+
+      - name: Slack Notification on Wrong Password
+        if: steps.password-check.outcome == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,eventName,ref,workflow
+          author_name: Deployment Security Alert 🚨
+          mention: channel
+          if_mention: always
+          job_name: security-check
+          channel: managex-university
+          username: manageX-university
+          text: |
+            🚨 *Unauthorized Deployment Attempt* 
+            *User:* `${{ github.actor }}`
+            *Workflow:* Deploy to Stage
+            *Status:* Failed - Invalid Password
+            
+            This incident has been logged for security monitoring.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Final Password Check
+        if: steps.password-check.outcome == 'failure'
+        run: |
+          echo "::error::Authentication failed - Deployment blocked"
+          exit 1 
+
+  Docker-Build:
+    runs-on: ubuntu-latest
+    needs: [Authentication]
+    environment: stage
+    timeout-minutes: 30 
+    strategy:
+      matrix:
+        node-version: [18.x]
+      max-parallel: 4
+      fail-fast: true
+    outputs:
+      commit_sha: ${{ steps.get-commit-sha.outputs.commit_sha }}
+    steps:
+      - name: Checkout CodeBase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: '${{ github.event.inputs.deploy_branch }}'
+          repository: 'Greatify/manageX-university-web'
+          token: ${{ secrets.REPO_DISPATCH_TOKEN }}
+
+      - name: Get Commit SHA
+        id: get-commit-sha
+        run: |
+          echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: v0.12.0
+          driver-opts: |
+            image=moby/buildkit:v0.12.0
+          buildkitd-flags: |
+            --debug
+            --allow-insecure-entitlement security.insecure
+            --allow-insecure-entitlement network.host
+          config-inline: |
+            [registry."docker.io"]
+              mirrors = ["mirror.gcr.io"]
+            [worker.oci]
+              max-parallelism = 12
+  
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          docker system prune -af
+          df -h 
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Sanitize tag
+        id: sanitize-tag
+        run: |
+          # Use tr command to explicitly replace spaces with hyphens
+          SANITIZED_TAG=$(echo "${{ github.event.inputs.stage_tag }}" | tr ' ' '-')
+          echo "Original tag: ${{ github.event.inputs.stage_tag }}"
+          echo "After space replacement: ${SANITIZED_TAG}"
+          # Now remove any other unwanted characters while preserving hyphens
+          SANITIZED_TAG=$(echo "${SANITIZED_TAG}" | tr -cd 'a-zA-Z0-9-.')
+          echo "Final sanitized tag: ${SANITIZED_TAG}"
+          echo "sanitized_tag=${SANITIZED_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ steps.get-commit-sha.outputs.commit_sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build and push PHP Laravel image to ECR
+        id: build-and-push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/managex_university_production:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          platforms: linux/amd64
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: Move new cache to cache directory
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Save image tag to file
+        run: |
+          echo "${{ steps.login-ecr.outputs.registry }}/managex_university_production:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
+
+      - name: Upload image tag files
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-tags
+          path: |
+            laravel_image_tag.txt
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Notify on Docker Build Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          fields: repo,message,commit,author,action,eventName,ref
+          author_name: 🐳 Docker Build Failed (University Stage Environment)
+          mention: ${{ github.actor }}
+          if_mention: failure
+          job_name: Docker Build
+          channel: managex-university
+          username: manageX-university
+          text: |
+            ❌ Docker build failed for commit **${{ steps.get-commit-sha.outputs.commit_sha }}** pushed by @${{ github.actor }} in University Stage environment.
+            *Author:* `${{ github.actor }}`
+            Commit ID: ${{ steps.get-commit-sha.outputs.commit_sha }}
+            Error: ${{ steps.build-and-push.outputs.error }}
+            Error message: ${{ steps.run-tests.outputs.error-message }}
+            Please fix the issue and push the changes again. Note: Code is not deployed.
+            @${{ github.actor }}, your changes are not deployed because of this issue.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  Deploy-to-Stage:
+    runs-on: ubuntu-latest
+    needs: [Docker-Build]  
+    environment: stage
+    timeout-minutes: 20
+    env:
+      CLOUDFRONT_DISTRIBUTION: E3JKJ6T9NQJU6F
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          fetch-depth: 0
+
+      - name: Download image tag files
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tags
+          path: .
+
+      - name: Set image tags as environment variables
+        run: |
+          echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name dev-stg-cluster --region ap-south-1
+
+      - name: Update PHP Laravel deployment image tag and change cause
+        run: |
+          yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
+          yq -i '.spec.template.metadata.annotations."kubernetes.io/change-cause" = "Updated to ${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
+          yq -i '.spec.jobTemplate.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/cronjob/base-cronjob.yaml
+
+      - name: Commit and Push Image Tags
+        run: |
+          git pull origin main
+          git config --local user.email "suriyanarayanan.s@greatify.ai"
+          git config --local user.name "surya1005"
+          git add -f k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
+          git commit -m "Update deployment image and change cause [Automated] For Stage Environment"
+          git push origin main
+
+      - name: Apply K8s manifests to Stage Environment With Validation
+        run: |
+          kubectl apply -k k8s/overlays/stage --validate=true
+          kubectl rollout status deployment/managex-university -n stage-managex-university --timeout=300s
+
+      - name: CloudFront Invalidation
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --paths "/*" --query 'Invalidation.Id' --output text)
+          echo "Created invalidation: $INVALIDATION_ID"
+          aws cloudfront wait invalidation-completed --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --id $INVALIDATION_ID
+
+      - name: Slack Notification on Deployment Status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: author,action,eventName,ref,workflow
+          author_name: University Stage Deployment Status
+          mention: ${{ github.actor }}
+          if_mention: success,failure
+          job_name: Deploy-to-Stage
+          channel: managex-university
+          username: manageX-university
+          text: |
+            ${{ format('{0} *Deployment Job* - *{1} (University Stage Environment)*', job.status == 'success' && ':rocket:' || ':x:', job.status) }}
+            *Author:* `${{ github.actor }}`
+            *Deployment for commit* *${{ needs.Docker-Build.outputs.commit_sha }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *University Stage Environment*.
+
+            *Message:* *${{ github.event.inputs.stage_tag }}*
+
+            ${{ job.status == 'success' && 'Your changes have been successfully deployed to the *University Stage environment*. Please verify the changes on the server.' || 'Deployment failed. Please check the logs for more details.' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}

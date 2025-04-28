@@ -1,0 +1,73 @@
+# Kustomization configuration for staging environment
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: stage-managex-university
+namePrefix: managex-
+resources:
+  - ../../base
+labels:
+  - pairs:
+      environment: staging
+    includeSelectors: false
+    includeTemplates: true
+
+# Patches for different Kubernetes resources
+patches:
+  # Patch for Deployment configuration
+  - target:
+      kind: Deployment
+      name: university
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: university
+        labels:
+          app: managex-university
+      spec:
+        template:
+          metadata:
+            labels:
+              app: managex-university
+          spec:
+            containers:
+              - name: managex-university
+                resources:
+                  requests:
+                    cpu: 700m
+                    memory: 700Mi
+                  limits:
+                    cpu: 900m
+                    memory: 900Mi
+  # Patch for Ingress configuration
+  - target:
+      kind: Ingress
+      name: university-ingress
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: university-ingress
+        annotations:
+          alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:399600302704:certificate/ce88a138-159c-49c6-bf11-4b6c00e48c1b
+      spec:
+        tls:
+          - hosts:
+              - greatifystg.university
+            secretName: tls-secret
+
+  # Patch for SecretProviderClass configuration
+  - target:
+      kind: SecretProviderClass
+      name: university-secrets
+    patch: |-
+      apiVersion: secrets-store.csi.x-k8s.io/v1
+      kind: SecretProviderClass
+      metadata:
+        name: university-secrets
+      spec:
+        parameters:
+          objects: |
+            - objectName: arn:aws:secretsmanager:ap-south-1:399600302704:secret:Managex-University-Stage-FOb1HL
+              objectAlias: ".env"
+              objectType: "secretsmanager"

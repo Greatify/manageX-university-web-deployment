@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: university-server-config
+data:
+  default: |
+   server {
+      listen 80;
+      listen [::]:80;
+
+      # Specify the root directory for your application
+      root /var/www/html/public;
+      
+      # CORS (Cross-Origin Resource Sharing) headers for API access
+      add_header 'Access-Control-Allow-Origin' '*' always;
+      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, DELETE, PUT' always;
+      add_header 'Access-Control-Allow-Headers' 'Origin, X-Requested-With, Content-Type, Accept' always;
+      
+      # Security headers
+      add_header X-Frame-Options "SAMEORIGIN" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header X-XSS-Protection "1; mode=block" always;
+
+      # Specify index files
+      index index.php index.html index.htm;
+
+      # Set character encoding
+      charset utf-8;
+
+      # Set maximum client body size
+      client_max_body_size 1024M;
+
+      # Main location block for handling requests
+      location / {
+          try_files $uri $uri/ /index.php?$query_string;
+      }
+
+      # Handle favicon and robots.txt requests separately
+      location = /favicon.ico {
+          access_log off;
+          log_not_found off;
+      }
+      
+      location = /robots.txt {
+          access_log off;
+          log_not_found off;
+      }
+
+      # Error page handling for 404 errors
+      error_page 404 /index.php;
+
+      # Error page handling for 502, 503, and 504 errors
+      error_page 502 503 504 /error.html;
+
+      # PHP handling configuration
+      location ~ \.php$ {
+          include snippets/fastcgi-php.conf;  # Default PHP handling snippet
+
+          # Pass PHP requests to the PHP-FPM socket
+          fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          include fastcgi_params;
+      }
+
+      # Restrict access to hidden files
+      location ~ /\.(?!well-known).* {
+          deny all;
+      }
+
+      # Optional: Enhance security with rate limiting (Uncomment to enable)
+      # limit_req zone=mylimit burst=10 nodelay;
+      
+      # Optional: Enable gzip compression (Uncomment to enable)
+      # gzip on;
+      # gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+   }

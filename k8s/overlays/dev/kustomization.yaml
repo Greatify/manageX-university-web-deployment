@@ -1,0 +1,110 @@
+# Kustomization configuration for development environment
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dev-managex-university
+namePrefix: managex-
+labels:
+  - pairs:
+      environment: development
+    includeSelectors: false
+    includeTemplates: true
+resources:
+  - ../../base
+
+# Patches for different Kubernetes resources
+patches:
+  # Patch for CronJob configuration
+  - target:
+      kind: CronJob
+      name: university-cronjob
+    patch: |-
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: university-cronjob
+        labels:
+          app: university-cronjob
+      spec:
+        jobTemplate:
+          spec:
+            template:
+              metadata:
+                labels:
+                  app: university-cronjob
+              spec:
+                containers:
+                  - name: university-cronjob
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005
+
+  # Patch for Deployment configuration
+  - target:
+      kind: Deployment
+      name: university
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: university
+        labels:
+          app: managex-university
+      spec:
+        template:
+          metadata:
+            labels:
+              app: managex-university
+            annotations:
+              kubernetes.io/change-cause: "Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005"
+          spec:
+            containers:
+              - name: managex-university
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 512Mi
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+
+  # Patch for Ingress configuration
+  - target:
+      kind: Ingress
+      name: university-ingress
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: university-ingress
+        annotations:
+          alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:399600302704:certificate/f04628d3-ad1e-4def-93a2-ad0016b15acb
+      spec:
+        rules:
+          - http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: managex-university-service
+                      port:
+                        number: 80
+        tls:
+          - hosts:
+              - greatifydev.university
+            secretName: tls-secret
+
+  # Patch for SecretProviderClass configuration
+  - target:
+      kind: SecretProviderClass
+      name: university-secrets
+    patch: |-
+      apiVersion: secrets-store.csi.x-k8s.io/v1
+      kind: SecretProviderClass
+      metadata:
+        name: university-secrets
+      spec:
+        parameters:
+          objects: |
+            - objectName: arn:aws:secretsmanager:ap-south-1:399600302704:secret:Managex-University-Dev-7x2By5
+              objectAlias: ".env"
+              objectType: "secretsmanager"

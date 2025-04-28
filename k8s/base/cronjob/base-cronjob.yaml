@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: university-cronjob
+  labels:
+    app: university-cronjob
+spec:
+  schedule: "*/1 * * * *"
+  concurrencyPolicy: "Replace"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: university-cronjob
+        spec:
+          serviceAccountName: university-service
+          volumes:
+            - name: university-secrets
+              csi:
+                driver: secrets-store.csi.k8s.io
+                readOnly: true
+                volumeAttributes:
+                  secretProviderClass: managex-university-secrets
+          containers:
+            - name: university-cronjob
+              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005
+              command: ["php", "/var/www/html/artisan", "schedule:run"]
+              volumeMounts:
+                - name: university-secrets
+                  mountPath: "/var/www/html/.env"
+                  subPath: ".env"
+                  readOnly: true
+          restartPolicy: OnFailure

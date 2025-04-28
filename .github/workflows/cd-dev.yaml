@@ -1,0 +1,95 @@
+name: Deploy to Development
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'Docker image to deploy'
+        required: true
+      sha:
+        description: 'Git SHA of the commit'
+        required: true
+      commit_message:
+        description: 'Sanitized commit message'
+        required: true
+      actor:
+        description: 'Sanitized actor name'
+        required: true
+
+jobs:
+  Deploy-to-Dev:
+    runs-on: ubuntu-latest
+    environment: dev
+    timeout-minutes: 20
+    env:
+      CLOUDFRONT_DISTRIBUTION: E1NGE16MDO85DS
+    steps:
+      - name: Checkout CodeBase
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Set image tag from dispatch input
+        run: |
+          echo "LARAVEL_IMAGE=${{ github.event.inputs.image }}" >> $GITHUB_ENV
+          echo "COMMIT_SHA=${{ github.event.inputs.sha }}" >> $GITHUB_ENV
+          echo "COMMIT_MESSAGE=${{ github.event.inputs.commit_message }}" >> $GITHUB_ENV
+          echo "ACTOR=${{ github.event.inputs.actor }}" >> $GITHUB_ENV
+
+      - name: Update PHP Laravel deployment image tag and change cause
+        run: |
+         sed -i "s|image: .*|image: ${{ env.LARAVEL_IMAGE }}|" k8s/overlays/dev/kustomization.yaml
+         sed -i "s|kubernetes.io/change-cause: .*|kubernetes.io/change-cause: Update to ${{ env.LARAVEL_IMAGE }} |" k8s/overlays/dev/kustomization.yaml
+
+      - name: Commit and Push Changes
+        run: |
+          git pull origin main
+          git config --local user.email "suriyanarayanan.s@greatify.ai"
+          git config --local user.name "surya1005"
+          git add -f k8s/overlays/dev/kustomization.yaml
+          git commit -m "Update deployment image and change cause [Automated] For Dev Environment"
+          git push origin main
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name dev-stg-cluster --region ap-south-1
+
+      - name: Apply K8s manifests to Dev Environment With Validation
+        run: |
+          kubectl apply -k k8s/overlays/dev --validate=true
+          kubectl rollout status deployment/managex-university -n dev-managex-university --timeout=300s
+
+      - name: CloudFront Invalidation
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --paths "/*" --query 'Invalidation.Id' --output text)
+          echo "Created invalidation: $INVALIDATION_ID"
+          aws cloudfront wait invalidation-completed --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --id $INVALIDATION_ID
+
+      - name: Slack Notification on Deployment Status
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: author,action,eventName,ref,workflow
+          author_name: University Dev Deployment Status
+          mention: ${{ github.event.inputs.actor }}
+          if_mention: success,failure
+          job_name: Deploy-to-Dev
+          channel: managex-university
+          username: manageX-university
+          text: |
+            ${{ format('{0} *Deployment Job* - *{1} (University Dev Environment)*', job.status == 'success' && ':rocket:' || ':x:', job.status) }}
+            *Author:* `${{ env.ACTOR }}`
+            *Deployment for commit* *${{ env.COMMIT_SHA }}* *pushed by* @${{ env.ACTOR }} has ${{ job.status }} in *University Dev Environment*.
+            *Message:* *${{ env.COMMIT_MESSAGE }}*
+            ${{ job.status == 'success' && 'Your changes have been successfully deployed to the *University Dev environment*. Please verify the changes on the server.' || 'Deployment failed. Please check the logs for more details.' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}

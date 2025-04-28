@@ -280,7 +280,7 @@ jobs:
             *Author:* `${{ github.actor }}`
             *Deployment for commit* *${{ needs.Docker-Build.outputs.commit_sha }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *University Stage Environment*.
 
-            *Commit Message:* *${{ github.event.inputs.stage_tag }}*
+            *Message:* *${{ github.event.inputs.stage_tag }}*
 
             ${{ job.status == 'success' && 'Your changes have been successfully deployed to the *University Stage environment*. Please verify the changes on the server.' || 'Deployment failed. Please check the logs for more details.' }}
         env:

@@ -229,6 +229,16 @@ jobs:
           ref: 'main'
           fetch-depth: 0
 
+      - name: Download image tag files
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tags
+          path: .
+
+      - name: Set image tags as environment variables
+        run: |
+          echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -250,7 +260,7 @@ jobs:
           git pull origin main
           git config --local user.email "suriyanarayanan.s@greatify.ai"
           git config --local user.name "surya1005"
-          git add -f k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
+          git add k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
           git commit -m "Update deployment image and change cause [Automated] For Production Environment"
           git push origin main
 
@@ -278,7 +288,7 @@ jobs:
           channel: managex-university
           username: manageX-university
           text: |
-            ${{ job.status == 'success' && ':rocket: *Deployment to University Production environment triggered by @`${{ github.actor }}` is ${{ job.status }}*.' || ':x: *Deployment to University Production environment triggered by @`${{ github.actor }}` is ${{ job.status }}*.' }}
+            ${{ job.status == 'success' && format(':rocket: Deployment to University Production environment triggered by @{0} is {1}.', github.actor, job.status) || format(':x: Deployment to University Production environment triggered by @{0} is {1}.', github.actor, job.status) }}
             *Author:* `${{ github.actor }}`
             *Deployment for commit* *${{ needs.Docker-Build.outputs.commit_sha }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *University Production Environment*.
             *Workflow Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -290,7 +300,7 @@ jobs:
 
   Deploy-to-Gulbarga:
     if: github.event.inputs.gulbarga_choice == 'true'
-    needs: [Deploy-to-Production]
+    needs: [Docker-Build,Deploy-to-Production]
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -311,21 +321,6 @@ jobs:
 
       - name: Update kube config
         run: aws eks update-kubeconfig --name greatify-production-cluster --region ap-south-1
-
-      - name: Update PHP Laravel deployment image tag and change cause
-        run: |
-          yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
-          yq -i '.spec.template.metadata.annotations."kubernetes.io/change-cause" = "Updated to ${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
-          yq -i '.spec.jobTemplate.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/cronjob/base-cronjob.yaml
-
-      - name: Commit and Push Image Tags
-        run: |
-          git pull origin main
-          git config --local user.email "suriyanarayanan.s@greatify.ai"
-          git config --local user.name "surya1005"
-          git add -f k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
-          git commit -m "Update deployment image and change cause [Automated] For Production Environment"
-          git push origin main
 
       - name: Apply K8s Manifests To Gulbarga Production With Validation
         run: |
@@ -351,7 +346,7 @@ jobs:
           channel: managex-university
           username: manageX-university
           text: |
-            ${{ job.status == 'success' && ':rocket: *Deployment to Gulbarga Production environment triggered by @`${{ github.actor }}` is ${{ job.status }}*.' || ':x: *Deployment to Gulbarga Production environment triggered by @`${{ github.actor }}` is ${{ job.status }}*.' }}
+            ${{ job.status == 'success' && format(':rocket: Deployment to Gulbarga Production environment triggered by @{0} is {1}.', github.actor, job.status) || format(':x: Deployment to Gulbarga Production environment triggered by @{0} is {1}.', github.actor, job.status) }}
             *Author:* `${{ github.actor }}`  
             *Deployment for commit* *${{ needs.Docker-Build.outputs.commit_sha }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *Gulbarga Production Environment*.
             *Workflow Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

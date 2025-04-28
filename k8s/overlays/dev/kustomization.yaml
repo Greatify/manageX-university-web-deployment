@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:f79a82a24e25052c1ff1a2504c0135b2ccb8f558-MNX-8-952-pushed-by-GopiGreatify
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: "Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005"
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:f79a82a24e25052c1ff1a2504c0135b2ccb8f558-MNX-8-952-pushed-by-GopiGreatify 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:f79a82a24e25052c1ff1a2504c0135b2ccb8f558-MNX-8-952-pushed-by-GopiGreatify
                 resources:
                   requests:
                     cpu: 300m

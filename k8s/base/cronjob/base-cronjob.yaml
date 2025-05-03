@@ -26,7 +26,7 @@ spec:
                   secretProviderClass: managex-university-secrets
           containers:
             - name: university-cronjob
-              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:034cf96fee708e8e9300cc143a9e386bd730c94a-Increased-memory-request-from-400Mi-to-512Mi-pushed-by-surya1005
+              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university_production:035e801b5d23855e4e2a3e404b0f9565dffb994b-Dev-to-Stage-BugFix-PR953
               command: ["php", "/var/www/html/artisan", "schedule:run"]
               volumeMounts:
                 - name: university-secrets

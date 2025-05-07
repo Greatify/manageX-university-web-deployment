@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:45b84e1d2d9cfacf96e6043a796e6d137ced7eda-Dev-to-Stage-Conflict-resolve--pushed-by-GopiGreatify
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:2a0034f02e54200b31aa9675cb4fe15a46ab69f4-GE-8860--document-types-reopen-pushed-by-Pugazh09
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:45b84e1d2d9cfacf96e6043a796e6d137ced7eda-Dev-to-Stage-Conflict-resolve--pushed-by-GopiGreatify 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:2a0034f02e54200b31aa9675cb4fe15a46ab69f4-GE-8860--document-types-reopen-pushed-by-Pugazh09 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:45b84e1d2d9cfacf96e6043a796e6d137ced7eda-Dev-to-Stage-Conflict-resolve--pushed-by-GopiGreatify
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:2a0034f02e54200b31aa9675cb4fe15a46ab69f4-GE-8860--document-types-reopen-pushed-by-Pugazh09
                 resources:
                   requests:
                     cpu: 300m

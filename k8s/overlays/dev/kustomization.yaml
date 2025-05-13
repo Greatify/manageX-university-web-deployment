@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:239852072d5d15a86d5a6a4e4a63f8596cd5aff5-MNX-36bugbook-959-pushed-by-Pugazh09
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:c92ca1f6da3bfcb2be883717d41b56b89ee27326-vite-upgrade-latest-version-96-pushed-by-Pugazh09
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:239852072d5d15a86d5a6a4e4a63f8596cd5aff5-MNX-36bugbook-959-pushed-by-Pugazh09 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:c92ca1f6da3bfcb2be883717d41b56b89ee27326-vite-upgrade-latest-version-96-pushed-by-Pugazh09 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:239852072d5d15a86d5a6a4e4a63f8596cd5aff5-MNX-36bugbook-959-pushed-by-Pugazh09
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:c92ca1f6da3bfcb2be883717d41b56b89ee27326-vite-upgrade-latest-version-96-pushed-by-Pugazh09
                 resources:
                   requests:
                     cpu: 300m

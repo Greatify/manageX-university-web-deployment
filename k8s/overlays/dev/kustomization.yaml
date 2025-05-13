@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:c92ca1f6da3bfcb2be883717d41b56b89ee27326-vite-upgrade-latest-version-96-pushed-by-Pugazh09
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a902bec65c77f0a95db9843b9d4be9cc2daeb613-change-cloud-url-963-pushed-by-GopiGreatify
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:c92ca1f6da3bfcb2be883717d41b56b89ee27326-vite-upgrade-latest-version-96-pushed-by-Pugazh09 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a902bec65c77f0a95db9843b9d4be9cc2daeb613-change-cloud-url-963-pushed-by-GopiGreatify 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:c92ca1f6da3bfcb2be883717d41b56b89ee27326-vite-upgrade-latest-version-96-pushed-by-Pugazh09
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a902bec65c77f0a95db9843b9d4be9cc2daeb613-change-cloud-url-963-pushed-by-GopiGreatify
                 resources:
                   requests:
                     cpu: 300m

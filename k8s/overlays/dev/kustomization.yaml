@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a902bec65c77f0a95db9843b9d4be9cc2daeb613-change-cloud-url-963-pushed-by-GopiGreatify
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:b459ca3b254168f0bfac696f4b655773e298ebbf-GE-7734buglibrary-966-pushed-by-Pugazh09
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a902bec65c77f0a95db9843b9d4be9cc2daeb613-change-cloud-url-963-pushed-by-GopiGreatify 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:b459ca3b254168f0bfac696f4b655773e298ebbf-GE-7734buglibrary-966-pushed-by-Pugazh09 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a902bec65c77f0a95db9843b9d4be9cc2daeb613-change-cloud-url-963-pushed-by-GopiGreatify
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:b459ca3b254168f0bfac696f4b655773e298ebbf-GE-7734buglibrary-966-pushed-by-Pugazh09
                 resources:
                   requests:
                     cpu: 300m

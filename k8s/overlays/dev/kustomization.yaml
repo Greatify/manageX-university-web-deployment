@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:39e3824e400b52a33cfc4c7a0ab0018b54ebac96-GE-7734bug-972-pushed-by-Pugazh09
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:6b543db373467c0a469368f8e6e5528dcb4c0cf1-return-removed-from-profiler-u-pushed-by-Pugazh09
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:39e3824e400b52a33cfc4c7a0ab0018b54ebac96-GE-7734bug-972-pushed-by-Pugazh09 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:6b543db373467c0a469368f8e6e5528dcb4c0cf1-return-removed-from-profiler-u-pushed-by-Pugazh09 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:39e3824e400b52a33cfc4c7a0ab0018b54ebac96-GE-7734bug-972-pushed-by-Pugazh09
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:6b543db373467c0a469368f8e6e5528dcb4c0cf1-return-removed-from-profiler-u-pushed-by-Pugazh09
                 resources:
                   requests:
                     cpu: 300m

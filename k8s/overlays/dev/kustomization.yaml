@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:7939d2c17cb2a4f944c4737bf8be95c980a0cb42-Mnx-62-cloud-url-change-974-pushed-by-Rafik-dev
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:2ede4d2049b0e9fbf773ae041391b67413230514-Dev-to-stage-pr-976Co-authored-pushed-by-Pugazh09
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:7939d2c17cb2a4f944c4737bf8be95c980a0cb42-Mnx-62-cloud-url-change-974-pushed-by-Rafik-dev 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:2ede4d2049b0e9fbf773ae041391b67413230514-Dev-to-stage-pr-976Co-authored-pushed-by-Pugazh09 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:7939d2c17cb2a4f944c4737bf8be95c980a0cb42-Mnx-62-cloud-url-change-974-pushed-by-Rafik-dev
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:2ede4d2049b0e9fbf773ae041391b67413230514-Dev-to-stage-pr-976Co-authored-pushed-by-Pugazh09
                 resources:
                   requests:
                     cpu: 300m

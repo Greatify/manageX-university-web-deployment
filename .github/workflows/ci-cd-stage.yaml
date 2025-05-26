@@ -156,7 +156,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/managex_university_production:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_STAGE }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           platforms: linux/amd64
@@ -170,7 +170,7 @@ jobs:
 
       - name: Save image tag to file
         run: |
-          echo "${{ steps.login-ecr.outputs.registry }}/managex_university_production:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
+          echo "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_STAGE }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
 
       - name: Upload image tag files
         uses: actions/upload-artifact@v4
@@ -210,9 +210,10 @@ jobs:
     environment: stage
     timeout-minutes: 20
     env:
-      CLOUDFRONT_DISTRIBUTION: E3JKJ6T9NQJU6F
+      CLOUDFRONT_DISTRIBUTION: ${{ secrets.STAGE_CLOUDFRONT_DISTRIBUTION }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout CodeBase
+        uses: actions/checkout@v4
         with:
           ref: 'main'
           fetch-depth: 0
@@ -235,7 +236,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name dev-stg-cluster --region ap-south-1
+        run: aws eks update-kubeconfig --name ${{ secrets.STAGE_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
       - name: Update PHP Laravel deployment image tag and change cause
         run: |

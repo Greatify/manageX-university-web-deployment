@@ -8,14 +8,9 @@ on:
         required: true
         type: string
 
-      deploy_branch:
-        description: 'Enter branch name to deploy'
-        required: true
-        type: string
-
-      prod_tag:
-        description: 'Tag for the image [e.g: Version-1.0 , Hotfix-MNX-8]'
-        required: true
+      re_tag:
+        description: 'Enter a new tag to re-tag the staging Docker image for production deployment'
+        required: false
         type: string
 
       prod_choice:
@@ -28,6 +23,22 @@ on:
         required: false
         type: boolean
         default: false
+      full_deploy:
+        description: 'Build New Image and Deploy to Production & Gulbarga'
+        required: false
+        type: boolean
+        default: false
+      deploy_branch:
+        description: 'Enter branch name to deploy'
+        required: false
+        type: string
+      prod_tag:
+        description: 'Tag for the image [e.g: Version-1.0 , HotFix-MNX8]'
+        required: false
+        type: string
+
+
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -39,7 +50,6 @@ jobs:
     steps:
       - name: Verify deployment password
         id: password-check
-        continue-on-error: true
         run: |
           CORRECT_PASSWORD="${{ secrets.DEPLOY_PASSWORD }}"
           INPUT_PASSWORD="${{ github.event.inputs.deploy_password }}"
@@ -72,15 +82,10 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Final Password Check
-        if: steps.password-check.outcome == 'failure'
-        run: |
-          echo "::error::Authentication failed - Deployment blocked"
-          exit 1 
-
   Docker-Build:
     runs-on: ubuntu-latest
     needs: [Authentication]
+    if: github.event.inputs.full_deploy == 'true'
     environment: production
     timeout-minutes: 30
     strategy:
@@ -89,7 +94,7 @@ jobs:
       max-parallel: 4
       fail-fast: true
     outputs:
-      commit_sha: ${{ steps.get-commit-sha.outputs.commit_sha }}
+      commit_sha: ${{ steps.get-commit-sha.outputs.commit_sha }} 
     steps:
       - name: Checkout CodeBase
         uses: actions/checkout@v4
@@ -133,9 +138,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ secrets.AWS_REGION_PROD }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -167,7 +172,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/managex_university_production:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           platforms: linux/amd64
@@ -181,7 +186,7 @@ jobs:
 
       - name: Save image tag to file
         run: |
-          echo "${{ steps.login-ecr.outputs.registry }}/managex_university_production:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
+          echo "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
 
       - name: Upload image tag files
         uses: actions/upload-artifact@v4
@@ -215,14 +220,92 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-  Deploy-to-Production:
-    needs: [Docker-Build]
+  ReTag-Image:
     runs-on: ubuntu-latest
+    needs: [Authentication]
+    if: github.event.inputs.full_deploy == 'false' && github.event.inputs.re_tag != ''
+    environment: production
+    outputs:
+      commit_sha: ${{ steps.get-commit-sha.outputs.commit_sha }}
+      retagged_image: ${{ steps.retag-image.outputs.retagged_image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          fetch-depth: 0
+          
+      - name: Get Commit SHA from existing image
+        id: get-commit-sha
+        run: |
+          # Extract commit SHA from the existing image tag
+          EXISTING_IMAGE=$(yq '.spec.template.spec.containers[0].image' k8s/base/deployment/base-deploy.yaml)
+          # Extract the commit SHA part from the image tag (format: registry/repo:commit_sha-tag)
+          COMMIT_SHA=$(echo "$EXISTING_IMAGE" | grep -oE '([0-9a-f]{40})' | head -1)
+          if [ -z "$COMMIT_SHA" ]; then
+            echo "::error::Could not extract commit SHA from image tag: $EXISTING_IMAGE"
+            exit 1
+          fi
+          echo "commit_sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
+          echo "Using commit SHA: $COMMIT_SHA"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ secrets.AWS_REGION_PROD }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Sanitize re_tag
+        id: sanitize-retag
+        run: |
+          SANITIZED_TAG=$(echo "${{ github.event.inputs.re_tag }}" | tr ' ' '-' | tr -cd 'a-zA-Z0-9-.')
+          echo "sanitized_retag=${SANITIZED_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Get existing image from deployment
+        id: get-existing-image
+        run: |
+          EXISTING_IMAGE=$(yq '.spec.template.spec.containers[0].image' k8s/base/deployment/base-deploy.yaml)
+          echo "existing_image=${EXISTING_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Re-tag and push image to ECR
+        id: retag-image
+        run: |
+          # Use the commit SHA from the existing image and the new sanitized tag
+          NEW_TAG="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-retag.outputs.sanitized_retag }}"
+          docker pull ${{ steps.get-existing-image.outputs.existing_image }}
+          docker tag ${{ steps.get-existing-image.outputs.existing_image }} ${NEW_TAG}
+          docker push ${NEW_TAG}
+          echo "retagged_image=${NEW_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Save retagged image to file
+        run: |
+          echo "${{ steps.retag-image.outputs.retagged_image }}" > laravel_image_tag.txt
+
+      - name: Upload retagged image tag file
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-tags
+          path: laravel_image_tag.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  Deploy-to-Production:
+    needs: [Docker-Build, ReTag-Image]
+    runs-on: ubuntu-latest
+    if: |
+      always() && 
+      github.event.inputs.prod_choice == 'true' && 
+      ((github.event.inputs.full_deploy == 'true' && (needs.Docker-Build.result == 'success' )) ||
+       (github.event.inputs.re_tag != '' && (needs.ReTag-Image.result == 'success')))
     environment: production
     env:
-      CLOUDFRONT_DISTRIBUTION: E2KZ2Y7H8CKPM7
+      CLOUDFRONT_DISTRIBUTION: ${{ secrets.PROD_CLOUDFRONT_DISTRIBUTION }} 
     steps:
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -231,23 +314,15 @@ jobs:
 
       - name: Download image tag files
         uses: actions/download-artifact@v4
+        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != ''
         with:
           name: image-tags
           path: .
-
+  
       - name: Set image tags as environment variables
+        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != ''
         run: |
           echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Update kube config
-        run: aws eks update-kubeconfig --name greatify-production-cluster --region ap-south-1
 
       - name: Update PHP Laravel deployment image tag and change cause
         run: |
@@ -263,6 +338,16 @@ jobs:
           git add k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
           git commit -m "Update deployment image and change cause [Automated] For Production Environment"
           git push origin main
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ secrets.AWS_REGION_PROD }}
+
+      - name: Update kube config
+        run: aws eks update-kubeconfig --name ${{ secrets.PROD_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION_PROD }}
 
       - name: Apply K8s Manifests To Production With Validation
         run: |
@@ -290,7 +375,8 @@ jobs:
           text: |
             ${{ job.status == 'success' && format(':rocket: Deployment to University Production environment triggered by @{0} is {1}.', github.actor, job.status) || format(':x: Deployment to University Production environment triggered by @{0} is {1}.', github.actor, job.status) }}
             *Author:* `${{ github.actor }}`
-            *Deployment for commit* *${{ needs.Docker-Build.outputs.commit_sha }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *University Production Environment*.
+            *Deployment for commit* *${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || github.event.inputs.re_tag != '' && needs.ReTag-Image.outputs.retagged_image }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *University Production Environment*.
+
             *Workflow Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             *Message:* *${{ github.event.inputs.prod_tag }}*
             ${{ job.status == 'success' && 'The code has been deployed to University Production Environment. Please check the deployment and verify the changes on the server.' || 'The code has not been deployed to University Production Environment due to failure. Please check the deployment logs for more details.' }}
@@ -299,12 +385,16 @@ jobs:
           SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
 
   Deploy-to-Gulbarga:
-    if: github.event.inputs.gulbarga_choice == 'true'
-    needs: [Docker-Build,Deploy-to-Production]
+    needs: [Docker-Build, ReTag-Image]
+    if: |
+      always() && 
+      github.event.inputs.gulbarga_choice == 'true' && 
+      ((github.event.inputs.full_deploy == 'true' && (needs.Docker-Build.result == 'success' )) ||
+       (github.event.inputs.re_tag != '' && (needs.ReTag-Image.result == 'success')))
     runs-on: ubuntu-latest
     environment: production
     env:
-      CLOUDFRONT_DISTRIBUTION: E1YSJSOW0VQF3J
+      CLOUDFRONT_DISTRIBUTION: ${{ secrets.GULBARGA_CLOUDFRONT_DISTRIBUTION }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -312,17 +402,46 @@ jobs:
           ref: 'main'
           fetch-depth: 0
 
+      - name: Download image tag files
+        uses: actions/download-artifact@v4
+        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+        with:
+          name: image-tags
+          path: .
+    
+      - name: Set image tags as environment variables
+        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+        run: |
+          echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
+  
+      - name: Update PHP Laravel deployment image tag and change cause
+        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+        run: |
+          yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
+          yq -i '.spec.template.metadata.annotations."kubernetes.io/change-cause" = "Updated to ${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
+          yq -i '.spec.jobTemplate.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/cronjob/base-cronjob.yaml
+  
+      - name: Commit and Push Image Tags
+        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+        run: |
+          git pull origin main
+          git config --local user.email "suriyanarayanan.s@greatify.ai"
+          git config --local user.name "surya1005"
+          git add k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
+          git commit -m "Update deployment image and change cause [Automated] For Production Environment"
+          git push origin main
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION_PROD }}
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name greatify-production-cluster --region ap-south-1
+        run: aws eks update-kubeconfig --name ${{ secrets.PROD_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION_PROD }}
 
-      - name: Apply K8s Manifests To Gulbarga Production With Validation
+      - name: Apply K8s  Manifests To Gulbarga Production With Validation
         run: |
           kubectl apply -k k8s/overlays/gulbarga --validate=true
           kubectl rollout status deployment/gulbarga-university-production -n gulbarga-university-production --timeout=300s
@@ -333,7 +452,7 @@ jobs:
           echo "Created invalidation: $INVALIDATION_ID"
           aws cloudfront wait invalidation-completed --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --id $INVALIDATION_ID
           
-      - name: Slack Notification On Deployment Status
+      - name: Slack Notification On Deployment Status 
         if: always()
         uses: 8398a7/action-slack@v3
         with:
@@ -347,8 +466,9 @@ jobs:
           username: manageX-university
           text: |
             ${{ job.status == 'success' && format(':rocket: Deployment to Gulbarga Production environment triggered by @{0} is {1}.', github.actor, job.status) || format(':x: Deployment to Gulbarga Production environment triggered by @{0} is {1}.', github.actor, job.status) }}
-            *Author:* `${{ github.actor }}`  
-            *Deployment for commit* *${{ needs.Docker-Build.outputs.commit_sha }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *Gulbarga Production Environment*.
+            *Author:* `${{ github.actor }}`
+            *Deployment for commit* *${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || github.event.inputs.re_tag != '' && needs.ReTag-Image.outputs.retagged_image }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *Gulbarga Production Environment*.
+
             *Workflow Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             *Message:* *${{ github.event.inputs.prod_tag }}*
             ${{ job.status == 'success' && 'The code has been deployed to Gulbarga Production Environment. Please check the deployment and verify the changes on the server.' || 'The code has not been deployed to Gulbarga Production Environment due to failure. Please check the deployment logs for more details.' }}

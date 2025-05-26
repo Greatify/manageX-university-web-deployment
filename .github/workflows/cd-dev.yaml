@@ -22,7 +22,7 @@ jobs:
     environment: dev
     timeout-minutes: 20
     env:
-      CLOUDFRONT_DISTRIBUTION: E1NGE16MDO85DS
+      CLOUDFRONT_DISTRIBUTION: ${{ secrets.DEV_CLOUDFRONT_DISTRIBUTION }}
     steps:
       - name: Checkout CodeBase
         uses: actions/checkout@v4
@@ -59,14 +59,14 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name dev-stg-cluster --region ap-south-1
+        run: aws eks update-kubeconfig --name ${{ secrets.DEV_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
       - name: Apply K8s manifests to Dev Environment With Validation
         run: |
           kubectl apply -k k8s/overlays/dev --validate=true
           kubectl rollout status deployment/managex-university -n dev-managex-university --timeout=300s
 
-      - name: CloudFront Invalidation
+      - name: Create CloudFront Invalidation
         run: |
           INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --paths "/*" --query 'Invalidation.Id' --output text)
           echo "Created invalidation: $INVALIDATION_ID"

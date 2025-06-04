@@ -385,12 +385,16 @@ jobs:
           SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
 
   Deploy-to-Gulbarga:
-    needs: [Docker-Build, ReTag-Image]
+    needs: 
+      - Docker-Build
+      - ReTag-Image
+      - Deploy-to-Production
     if: |
       always() && 
       github.event.inputs.gulbarga_choice == 'true' && 
       ((github.event.inputs.full_deploy == 'true' && (needs.Docker-Build.result == 'success' )) ||
-       (github.event.inputs.re_tag != '' && (needs.ReTag-Image.result == 'success')))
+       (github.event.inputs.re_tag != '' && (needs.ReTag-Image.result == 'success'))) &&
+      (github.event.inputs.prod_choice != 'true' || (needs.Deploy-to-Production.result == 'success'))
     runs-on: ubuntu-latest
     environment: production
     env:
@@ -402,33 +406,42 @@ jobs:
           ref: 'main'
           fetch-depth: 0
 
-      - name: Download image tag files
+      # These steps are only needed when deploying to Gulbarga without Production
+      - name: Download image tag files (Gulbarga Only)
         uses: actions/download-artifact@v4
-        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+            github.event.inputs.gulbarga_choice == 'true' && 
+            github.event.inputs.prod_choice != 'true'
         with:
           name: image-tags
           path: .
     
-      - name: Set image tags as environment variables
-        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+      - name: Set image tags as environment variables (Gulbarga Only)
+        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+            github.event.inputs.gulbarga_choice == 'true' && 
+            github.event.inputs.prod_choice != 'true'
         run: |
           echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
   
-      - name: Update PHP Laravel deployment image tag and change cause
-        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+      - name: Update PHP Laravel deployment image tag and change cause (Gulbarga Only)
+        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+            github.event.inputs.gulbarga_choice == 'true' && 
+            github.event.inputs.prod_choice != 'true'
         run: |
           yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
           yq -i '.spec.template.metadata.annotations."kubernetes.io/change-cause" = "Updated to ${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
           yq -i '.spec.jobTemplate.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/cronjob/base-cronjob.yaml
   
-      - name: Commit and Push Image Tags
-        if: github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '' && github.event.inputs.gulbarga_choice == 'true' && github.event.inputs.prod_choice == 'false'
+      - name: Commit and Push Image Tags (Gulbarga Only)
+        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+            github.event.inputs.gulbarga_choice == 'true' && 
+            github.event.inputs.prod_choice != 'true'
         run: |
           git pull origin main
           git config --local user.email "suriyanarayanan.s@greatify.ai"
           git config --local user.name "surya1005"
           git add k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
-          git commit -m "Update deployment image and change cause [Automated] For Production Environment"
+          git commit -m "Update deployment image and change cause [Automated] For Gulbarga Only"
           git push origin main
 
       - name: Configure AWS credentials

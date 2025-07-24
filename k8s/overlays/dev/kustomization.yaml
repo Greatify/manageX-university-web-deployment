@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:54cac7d5265d8d2d748db4b70fc920a7d0302eed-GE-5049Subject-Mapping-991-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:fb14c80947e38d196447e89f7462c09ff1ce40a0-Update-Docker-configuration-fo-pushed-by-surya1005
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:54cac7d5265d8d2d748db4b70fc920a7d0302eed-GE-5049Subject-Mapping-991-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:fb14c80947e38d196447e89f7462c09ff1ce40a0-Update-Docker-configuration-fo-pushed-by-surya1005 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:54cac7d5265d8d2d748db4b70fc920a7d0302eed-GE-5049Subject-Mapping-991-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:fb14c80947e38d196447e89f7462c09ff1ce40a0-Update-Docker-configuration-fo-pushed-by-surya1005
                 resources:
                   requests:
                     cpu: 300m

@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:9deee98292b54ffee58e7071ad3db25f1f940fc6-Update-Dockerfile-to-set-PHP-v-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:db80d91f720c2bea9e9e91a9f07fbd9d2cdb98ea-GE-10319-995-pushed-by-hari-14rs
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:9deee98292b54ffee58e7071ad3db25f1f940fc6-Update-Dockerfile-to-set-PHP-v-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:db80d91f720c2bea9e9e91a9f07fbd9d2cdb98ea-GE-10319-995-pushed-by-hari-14rs 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:9deee98292b54ffee58e7071ad3db25f1f940fc6-Update-Dockerfile-to-set-PHP-v-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:db80d91f720c2bea9e9e91a9f07fbd9d2cdb98ea-GE-10319-995-pushed-by-hari-14rs
                 resources:
                   requests:
                     cpu: 300m

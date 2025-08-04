@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:101ccd50e18d737ed02e1544288a92996727c601-Log-Warning-Error-Fix-997-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:8d40d5d9179513f335e226317932dba21a9c795c-Merge-branch-main-into-greatif-pushed-by-surya1005
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:101ccd50e18d737ed02e1544288a92996727c601-Log-Warning-Error-Fix-997-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:8d40d5d9179513f335e226317932dba21a9c795c-Merge-branch-main-into-greatif-pushed-by-surya1005 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:101ccd50e18d737ed02e1544288a92996727c601-Log-Warning-Error-Fix-997-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:8d40d5d9179513f335e226317932dba21a9c795c-Merge-branch-main-into-greatif-pushed-by-surya1005
                 resources:
                   requests:
                     cpu: 300m

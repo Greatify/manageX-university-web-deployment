@@ -115,6 +115,11 @@ patches:
           alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:399600302704:certificate/444fe772-a294-4538-bcb7-fa6d0ffa2600
           alb.ingress.kubernetes.io/cors-allow-origin: >-
             https://aiostack.in,https://www.aiostack.in,https://*.aiostack.in
+          alb.ingress.kubernetes.io/load-balancer-attributes: >-
+            access_logs.s3.enabled=true,
+            access_logs.s3.bucket=gulbarga-university,
+            access_logs.s3.prefix=ELBLogs,
+            
       spec:
         rules:
           - http:

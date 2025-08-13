@@ -26,7 +26,7 @@ spec:
                   secretProviderClass: managex-university-secrets
           containers:
             - name: university-cronjob
-              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:3a1a35ba13116bc7fe08edde09057536510656b6-Dev-to-Stage-PR1010
+              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:201ba5e47d78752df07720888a0fa47d10b1acef-MNX-831-PR1013
               command: ["php", "/var/www/html/artisan", "schedule:run"]
               volumeMounts:
                 - name: university-secrets

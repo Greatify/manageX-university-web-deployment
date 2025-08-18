@@ -118,8 +118,8 @@ patches:
           alb.ingress.kubernetes.io/load-balancer-attributes: >-
             access_logs.s3.enabled=true,
             access_logs.s3.bucket=gulbarga-university,
-            access_logs.s3.prefix=ELBLogs,
-            
+            access_logs.s3.prefix=ELBLogs
+
       spec:
         rules:
           - http:

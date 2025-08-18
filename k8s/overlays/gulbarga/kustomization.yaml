@@ -116,6 +116,10 @@ patches:
           alb.ingress.kubernetes.io/cors-allow-origin: >-
             https://aiostack.in,https://www.aiostack.in,https://*.aiostack.in
           alb.ingress.kubernetes.io/load-balancer-attributes: >-
+            idle_timeout.timeout_seconds=60,
+            deletion_protection.enabled=true,
+            routing.http2.enabled=true,
+            routing.http.drop_invalid_header_fields.enabled=true,
             access_logs.s3.enabled=true,
             access_logs.s3.bucket=gulbarga-university,
             access_logs.s3.prefix=ELBLogs

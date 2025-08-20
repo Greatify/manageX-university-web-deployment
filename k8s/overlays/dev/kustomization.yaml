@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:f198a5cd01bc675b10e11d85f8dbb1409a9fe56c-MNX-1062-1023-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a653432529627520820a505a96383c942d387899-MNX-1062-1025-pushed-by-surya1005
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:f198a5cd01bc675b10e11d85f8dbb1409a9fe56c-MNX-1062-1023-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a653432529627520820a505a96383c942d387899-MNX-1062-1025-pushed-by-surya1005 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:f198a5cd01bc675b10e11d85f8dbb1409a9fe56c-MNX-1062-1023-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a653432529627520820a505a96383c942d387899-MNX-1062-1025-pushed-by-surya1005
                 resources:
                   requests:
                     cpu: 300m

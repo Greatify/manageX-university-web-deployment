@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:0743e878c43ce22ae07462bdbce20bdb853dba5d-Mnx-1191-timetable-bugs-1046Co-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a9b59af9f91c4a33277cf3787c275557565df963-MNX-1198-timetable-bug-fixes-1-pushed-by-surya1005
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:0743e878c43ce22ae07462bdbce20bdb853dba5d-Mnx-1191-timetable-bugs-1046Co-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a9b59af9f91c4a33277cf3787c275557565df963-MNX-1198-timetable-bug-fixes-1-pushed-by-surya1005 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:0743e878c43ce22ae07462bdbce20bdb853dba5d-Mnx-1191-timetable-bugs-1046Co-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:a9b59af9f91c4a33277cf3787c275557565df963-MNX-1198-timetable-bug-fixes-1-pushed-by-surya1005
                 resources:
                   requests:
                     cpu: 300m

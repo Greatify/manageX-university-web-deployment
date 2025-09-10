@@ -172,7 +172,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:prod-${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           platforms: linux/amd64
@@ -187,7 +187,7 @@ jobs:
 
       - name: Save image tag to file
         run: |
-          echo "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
+          echo "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:prod-${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
 
       - name: Upload image tag files
         uses: actions/upload-artifact@v4
@@ -277,7 +277,7 @@ jobs:
         id: retag-image
         run: |
           # Use the commit SHA from the existing image and the new sanitized tag
-          NEW_TAG="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-retag.outputs.sanitized_retag }}"
+          NEW_TAG="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:prod-${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-retag.outputs.sanitized_retag }}"
           docker pull ${{ steps.get-existing-image.outputs.existing_image }}
           docker tag ${{ steps.get-existing-image.outputs.existing_image }} ${NEW_TAG}
           docker push ${NEW_TAG}

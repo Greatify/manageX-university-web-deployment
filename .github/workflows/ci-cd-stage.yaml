@@ -156,7 +156,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_STAGE }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_STAGE }}:stage-${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           platforms: linux/amd64
@@ -171,7 +171,7 @@ jobs:
 
       - name: Save image tag to file
         run: |
-          echo "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_STAGE }}:${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
+          echo "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_STAGE }}:stage-${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}" > laravel_image_tag.txt
 
       - name: Upload image tag files
         uses: actions/upload-artifact@v4

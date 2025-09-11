@@ -103,9 +103,9 @@ patches:
       metadata:
         name: university-ingress
         annotations:
-          alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:399600302704:certificate/e1e53fd8-f0f1-4444-b19c-dca37a1a7f57
+          alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:399600302704:certificate/ade5589a-550c-459b-82fd-5adf031c755f
           alb.ingress.kubernetes.io/cors-allow-origin: >-
-            https://greatify.xyz,https://www.greatify.xyz,https://*.greatify.xyz
+            https://greatify.org,https://www.greatify.org,https://*.greatify.org
       spec:
         rules:
           - http:
@@ -119,7 +119,7 @@ patches:
                         number: 80
         tls:
           - hosts:
-              - greatify.xyz
+              - greatify.org
             secretName: tls-secret
 
   # Patch for ConfigMap configuration
@@ -144,7 +144,7 @@ patches:
           server {
             listen 80;
             listen [::]:80;
-            server_name greatify.xyz www.greatify.xyz *.greatify.xyz;
+            server_name greatify.org www.greatify.org *.greatify.org;
 
             # Set the real IP from CloudFront and ALB
             real_ip_header X-Forwarded-For;
@@ -156,7 +156,7 @@ patches:
             
             # CORS (Cross-Origin Resource Sharing) headers for API access
             set $cors_origin '';
-            if ($http_origin ~* ^https?://(localhost:[0-9]+|([a-z0-9-]+\.)?greatify\.xyz(:[0-9]+)?)$) {
+            if ($http_origin ~* ^https?://(localhost:[0-9]+|([a-z0-9-]+\.)?greatify\.org(:[0-9]+)?)$) {
                 set $cors_origin $http_origin;
             }
             add_header 'Access-Control-Allow-Origin' $cors_origin always;

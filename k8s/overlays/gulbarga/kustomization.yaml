@@ -75,7 +75,7 @@ patches:
                   name: gulbarga-university-nginx-config-production
               - name: efs-storage
                 persistentVolumeClaim:
-                  claimName: gulbarga-university-efs-pvc
+                  claimName: gulbarga-university-pvc
             containers:
               - name: managex-university
                 resources:
@@ -121,7 +121,7 @@ patches:
             routing.http2.enabled=true,
             routing.http.drop_invalid_header_fields.enabled=true,
             access_logs.s3.enabled=true,
-            access_logs.s3.bucket=gulbarga-university,
+            access_logs.s3.bucket=gulbarga-university-prod,
             access_logs.s3.prefix=ELBLogs
 
       spec:

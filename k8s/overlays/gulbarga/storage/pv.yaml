@@ -10,5 +10,5 @@ spec:
   storageClassName: gulbarga-university-sc
   nfs:
     path: /
-    server: fs-0cb43317917bf7a4b.efs.ap-south-1.amazonaws.com
+    server: fs-0a8a32a93bcd0409c.efs.ap-south-1.amazonaws.com
   persistentVolumeReclaimPolicy: Retain

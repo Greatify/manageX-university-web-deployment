@@ -1,7 +1,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: managex-university-pvc
+  name: gulbarga-university-pvc
+  namespace: gulbarga-university-production
 spec:
   accessModes:
     - ReadWriteMany

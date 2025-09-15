@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-eaee62897bd15ff76fbbc068cbd1fe04af8e0949-Revert-Stage-conflict-resove-1-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-62027f428a09eb29b5dcb1d49571fd0439c82c2c-Stage-resolve-1054-pushed-by-surya1005
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-eaee62897bd15ff76fbbc068cbd1fe04af8e0949-Revert-Stage-conflict-resove-1-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-62027f428a09eb29b5dcb1d49571fd0439c82c2c-Stage-resolve-1054-pushed-by-surya1005 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-eaee62897bd15ff76fbbc068cbd1fe04af8e0949-Revert-Stage-conflict-resove-1-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-62027f428a09eb29b5dcb1d49571fd0439c82c2c-Stage-resolve-1054-pushed-by-surya1005
                 resources:
                   requests:
                     cpu: 300m

@@ -196,6 +196,7 @@ jobs:
         with:
           status: failure
           channel: managex-university
+          author_name: University Production Docker Build Status
           text: |
             [❌] University Production Docker Build: Failed
             Commit: ${{ steps.get-commit-sha.outputs.commit_sha }} | By: @${{ github.actor }}

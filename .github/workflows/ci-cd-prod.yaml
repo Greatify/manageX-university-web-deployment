@@ -46,6 +46,7 @@ concurrency:
 
 jobs:        
   Authentication:
+    name: Authentication
     runs-on: ubuntu-latest
     steps:
       - name: Verify deployment password
@@ -64,25 +65,16 @@ jobs:
         if: steps.password-check.outcome == 'failure'
         uses: 8398a7/action-slack@v3
         with:
-          status: ${{ job.status }}
-          fields: repo,message,commit,eventName,ref,workflow
-          author_name: Deployment Security Alert 🚨
-          mention: channel
-          if_mention: always
-          job_name: security-check
+          status: failure
           channel: managex-university
-          username: manageX-university
           text: |
-            🚨 *Unauthorized Deployment Attempt* 
-            *User:* `${{ github.actor }}`
-            *Workflow:* Deploy to Production
-            *Status:* Failed - Invalid Password
-            
-            This incident has been logged for security monitoring.
+            🚨 *Unauthorized Production Deployment Attempt*
+            User: @${{ github.actor }} | Status: Failed - Invalid Password
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   Docker-Build:
+    name: Docker Build
     runs-on: ubuntu-latest
     needs: [Authentication]
     if: github.event.inputs.full_deploy == 'true'
@@ -203,25 +195,16 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: failure
-          fields: repo,message,commit,author,action,eventName,ref
-          author_name: 🐳 Docker Build Failed (University Production Environment)
-          mention: ${{ github.actor }}
-          if_mention: failure
-          job_name: Docker Build
           channel: managex-university
-          username: manageX-university
           text: |
-            ❌ Docker build failed for commit **${{ steps.get-commit-sha.outputs.commit_sha }}** pushed by @${{ github.actor }} in University Production environment.
-            *Author:* `${{ github.actor }}`
-            Commit ID: ${{ steps.get-commit-sha.outputs.commit_sha }}
-            Error: ${{ steps.build-and-push.outputs.error }}
-            Error message: ${{ steps.run-tests.outputs.error-message }}
-            Please fix the issue and push the changes again. Note: Code is not deployed.
-            @${{ github.actor }}, your changes are not deployed because of this issue.
+            [❌] University Production Docker Build: Failed
+            Commit: ${{ steps.get-commit-sha.outputs.commit_sha }} | By: @${{ github.actor }}
+            Message: ${{ github.event.inputs.prod_tag }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
   ReTag-Image:
+    name: ReTag Image
     runs-on: ubuntu-latest
     needs: [Authentication]
     if: github.event.inputs.full_deploy == 'false' && github.event.inputs.re_tag != ''
@@ -296,6 +279,7 @@ jobs:
           if-no-files-found: error
 
   Deploy-to-Production:
+    name: Deploy to Production
     needs: [Docker-Build, ReTag-Image]
     runs-on: ubuntu-latest
     if: |
@@ -306,6 +290,7 @@ jobs:
     environment: production
     env:
       CLOUDFRONT_DISTRIBUTION: ${{ secrets.PROD_CLOUDFRONT_DISTRIBUTION }} 
+      URL: ${{ vars.PROD_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -336,9 +321,14 @@ jobs:
           git pull origin main
           git config --local user.email "suriyanarayanan.s@greatify.ai"
           git config --local user.name "surya1005"
-          git add k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
-          git commit -m "Update deployment image and change cause [Automated] For Production Environment"
-          git push origin main
+          git add -f k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
+          if git diff --cached --quiet; then
+            echo "No changes to commit, skipping commit and push"
+          else
+            echo "Changes detected, committing and pushing"
+            git commit -m "Update deployment image and change cause [Automated] For Production Environment"
+            git push origin main
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -366,26 +356,19 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          fields: author,action,eventName,ref,workflow
-          author_name: University Production Deployment Status
-          mention: ${{ github.actor }}
-          if_mention: success,failure
-          job_name: Deploy-to-Production
           channel: managex-university
-          username: manageX-university
+          author_name: University Production Deployment Status
           text: |
-            ${{ job.status == 'success' && format(':rocket: Deployment to University Production environment triggered by @{0} is {1}.', github.actor, job.status) || format(':x: Deployment to University Production environment triggered by @{0} is {1}.', github.actor, job.status) }}
-            *Author:* `${{ github.actor }}`
-            *Deployment for commit* *${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || github.event.inputs.re_tag != '' && needs.ReTag-Image.outputs.retagged_image }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *University Production Environment*.
-
-            *Workflow Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            *Message:* *${{ github.event.inputs.prod_tag }}*
-            ${{ job.status == 'success' && 'The code has been deployed to University Production Environment. Please check the deployment and verify the changes on the server.' || 'The code has not been deployed to University Production Environment due to failure. Please check the deployment logs for more details.' }}
+            [${{ job.status == 'success' && '✅' || '❌' }}] University Production Deployment: ${{ job.status }}
+            Commit: ${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || needs.ReTag-Image.outputs.commit_sha }} | By: @${{ github.actor }}
+            Message: ${{ github.event.inputs.prod_tag }}
+            *URL:* ${{env.URL}}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
+  
 
   Deploy-to-Gulbarga:
+    name: Deploy to Gulbarga
     needs: 
       - Docker-Build
       - ReTag-Image
@@ -400,6 +383,7 @@ jobs:
     environment: gulbarga-production
     env:
       CLOUDFRONT_DISTRIBUTION: ${{ secrets.GULBARGA_CLOUDFRONT_DISTRIBUTION }}
+      URL: ${{ vars.GULBARGA_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -441,9 +425,14 @@ jobs:
           git pull origin main
           git config --local user.email "suriyanarayanan.s@greatify.ai"
           git config --local user.name "surya1005"
-          git add k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
-          git commit -m "Update deployment image and change cause [Automated] For Gulbarga Only"
-          git push origin main
+          git add -f k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
+          if git diff --cached --quiet; then
+            echo "No changes to commit, skipping commit and push"
+          else
+            echo "Changes detected, committing and pushing"
+            git commit -m "Update deployment image and change cause [Automated] For Gulbarga Only"
+            git push origin main
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -453,7 +442,7 @@ jobs:
           aws-region: ${{ secrets.GULBARGA_AWS_REGION }}
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name ${{ secrets.PROD_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION_PROD }}
+        run: aws eks update-kubeconfig --name ${{ secrets.GULBARGA_CLUSTER_NAME }} --region ${{ secrets.GULBARGA_AWS_REGION }}
 
       - name: Apply K8s  Manifests To Gulbarga Production With Validation
         run: |
@@ -466,26 +455,17 @@ jobs:
           echo "Created invalidation: $INVALIDATION_ID"
           aws cloudfront wait invalidation-completed --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --id $INVALIDATION_ID
           
-      - name: Slack Notification On Deployment Status 
+      - name: Slack Notification On Deployment Status
         if: always()
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          fields: author,action,eventName,ref,workflow
-          author_name: Gulbarga Production Deployment Status
-          mention: ${{ github.actor }}
-          if_mention: success,failure
-          job_name: Deploy-to-Gulbarga
           channel: managex-university
-          username: manageX-university
+          author_name: Gulbarga Production Deployment Status
           text: |
-            ${{ job.status == 'success' && format(':rocket: Deployment to Gulbarga Production environment triggered by @{0} is {1}.', github.actor, job.status) || format(':x: Deployment to Gulbarga Production environment triggered by @{0} is {1}.', github.actor, job.status) }}
-            *Author:* `${{ github.actor }}`
-            *Deployment for commit* *${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || github.event.inputs.re_tag != '' && needs.ReTag-Image.outputs.retagged_image }}* *pushed by* *@${{ github.actor }}* has *${{ job.status }}* in *Gulbarga Production Environment*.
-
-            *Workflow Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            *Message:* *${{ github.event.inputs.prod_tag }}*
-            ${{ job.status == 'success' && 'The code has been deployed to Gulbarga Production Environment. Please check the deployment and verify the changes on the server.' || 'The code has not been deployed to Gulbarga Production Environment due to failure. Please check the deployment logs for more details.' }}
+            [${{ job.status == 'success' && '✅' || '❌' }}] Gulbarga Production Deployment: ${{ job.status }}
+            Commit: ${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || needs.ReTag-Image.outputs.commit_sha }} | By: @${{ github.actor }}
+            Message: ${{ github.event.inputs.prod_tag }}
+            *URL:* ${{env.URL}}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}

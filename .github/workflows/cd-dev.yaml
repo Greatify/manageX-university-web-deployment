@@ -18,11 +18,13 @@ on:
 
 jobs:
   Deploy-to-Dev:
+    name: Deploy to Dev
     runs-on: ubuntu-latest
     environment: dev
     timeout-minutes: 20
     env:
       CLOUDFRONT_DISTRIBUTION: ${{ secrets.DEV_CLOUDFRONT_DISTRIBUTION }}
+      URL: ${{ vars.DEV_URL }}
     steps:
       - name: Checkout CodeBase
         uses: actions/checkout@v4
@@ -48,8 +50,13 @@ jobs:
           git config --local user.email "suriyanarayanan.s@greatify.ai"
           git config --local user.name "surya1005"
           git add -f k8s/overlays/dev/kustomization.yaml
-          git commit -m "Update deployment image and change cause [Automated] For Dev Environment"
-          git push origin main
+          if git diff --cached --quiet; then
+            echo "No changes to commit, skipping commit and push"
+          else
+            echo "Changes detected, committing and pushing"
+            git commit -m "Update deployment image and change cause [Automated] For Dev Environment"
+            git push origin main
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -72,24 +79,17 @@ jobs:
           echo "Created invalidation: $INVALIDATION_ID"
           aws cloudfront wait invalidation-completed --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --id $INVALIDATION_ID
 
-      - name: Slack Notification on Deployment Status
+      - name: Slack Notification On Deployment Status
         if: always()
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
-          fields: author,action,eventName,ref,workflow
-          author_name: University Dev Deployment Status
-          mention: ${{ github.event.inputs.actor }}
-          if_mention: success,failure
-          job_name: Deploy-to-Dev
           channel: managex-university
-          username: manageX-university
+          author_name: University Dev Deployment Status
           text: |
-            ${{ format('{0} *Deployment Job* - *{1} (University Dev Environment)*', job.status == 'success' && ':rocket:' || ':x:', job.status) }}
-            *Author:* `${{ env.ACTOR }}`
-            *Deployment for commit* *${{ env.COMMIT_SHA }}* *pushed by* @${{ env.ACTOR }} has ${{ job.status }} in *University Dev Environment*.
-            *Message:* *${{ env.COMMIT_MESSAGE }}*
-            ${{ job.status == 'success' && 'Your changes have been successfully deployed to the *University Dev environment*. Please verify the changes on the server.' || 'Deployment failed. Please check the logs for more details.' }}
+            [${{ job.status == 'success' && '✅' || '❌' }}] University Dev Deployment: ${{ job.status }}
+            Commit: ${{ github.event.inputs.sha }} | By: @${{ github.event.inputs.actor }}
+            Message: ${{ github.event.inputs.commit_message }}
+            *URL:* ${{env.URL}}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}

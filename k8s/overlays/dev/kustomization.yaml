@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-b38886791724d0e6caf46c1f141d7324a3ba5f0a-MNX-1236-create-fee-to-new-stu-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-f044b3ae133b570365cef446c0fff57a3a3dfaf4-removed-unwanted-files-1070-pushed-by-surya1005
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-b38886791724d0e6caf46c1f141d7324a3ba5f0a-MNX-1236-create-fee-to-new-stu-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-f044b3ae133b570365cef446c0fff57a3a3dfaf4-removed-unwanted-files-1070-pushed-by-surya1005 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-b38886791724d0e6caf46c1f141d7324a3ba5f0a-MNX-1236-create-fee-to-new-stu-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-f044b3ae133b570365cef446c0fff57a3a3dfaf4-removed-unwanted-files-1070-pushed-by-surya1005
                 resources:
                   requests:
                     cpu: 300m

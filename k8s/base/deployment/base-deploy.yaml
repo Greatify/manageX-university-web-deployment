@@ -19,7 +19,7 @@ spec:
       labels:
         app: managex-university
       annotations:
-        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-c90dcb795274c5626807ab8ea2fce221da7f92d9-Mnx-1251-attendance-list-present-absent-count-error"
+        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-046250d079f6b1a34575570db4b1689ed198d126-Mnx-1252-bugfixes-stage-deploy-"
     spec:
       serviceAccountName: university-service
       volumes:
@@ -58,7 +58,7 @@ spec:
             claimName: managex-university-pvc
       containers:
         - name: managex-university
-          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-c90dcb795274c5626807ab8ea2fce221da7f92d9-Mnx-1251-attendance-list-present-absent-count-error
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-046250d079f6b1a34575570db4b1689ed198d126-Mnx-1252-bugfixes-stage-deploy-
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-13d70399311cd0bdfd5bf4780fc9eb1f26cfc027-Mnx-1251-attendance-list-prese-pushed-by-hari-14rs
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-9b4a4922cef554ae29fc4fa1cbf034bfa7e67ae5-MNX-1252---Management-payment--pushed-by-hari-14rs
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-13d70399311cd0bdfd5bf4780fc9eb1f26cfc027-Mnx-1251-attendance-list-prese-pushed-by-hari-14rs 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-9b4a4922cef554ae29fc4fa1cbf034bfa7e67ae5-MNX-1252---Management-payment--pushed-by-hari-14rs 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-13d70399311cd0bdfd5bf4780fc9eb1f26cfc027-Mnx-1251-attendance-list-prese-pushed-by-hari-14rs
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-9b4a4922cef554ae29fc4fa1cbf034bfa7e67ae5-MNX-1252---Management-payment--pushed-by-hari-14rs
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

@@ -58,13 +58,14 @@ patches:
             containers:
               - name: managex-university
                 image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-cb07f0bafe49c14f98c9602439ca1812ff8f1fa7-MNX-1252-missing-feeaddon-clas-pushed-by-hari-14rs
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 512Mi
-                  limits:
-                    cpu: 500m
-                    memory: 512Mi
+                resources: null  # Commented out for dev environment
+                # resources:
+                #   requests:
+                #     cpu: 300m
+                #     memory: 512Mi
+                #   limits:
+                #     cpu: 500m
+                #     memory: 512Mi
 
   # Patch for Ingress configuration
   - target:

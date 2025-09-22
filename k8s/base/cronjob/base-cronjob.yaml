@@ -26,7 +26,7 @@ spec:
                   secretProviderClass: managex-university-secrets
           containers:
             - name: university-cronjob
-              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-adb936159c084fd7e287d8cead336af5ac1a2021-MNX-1252-PR1086
+              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-c90dcb795274c5626807ab8ea2fce221da7f92d9-Mnx-1251-attendance-list-present-absent-count-error
               command: ["php", "/var/www/html/artisan", "schedule:run"]
               volumeMounts:
                 - name: university-secrets

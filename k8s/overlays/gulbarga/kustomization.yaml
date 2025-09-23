@@ -112,7 +112,7 @@ patches:
       metadata:
         name: university-ingress
         annotations:
-          alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:399600302704:certificate/444fe772-a294-4538-bcb7-fa6d0ffa2600
+          alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:225989355798:certificate/01adf131-a4b4-41b3-bd25-556333fa6267
           alb.ingress.kubernetes.io/cors-allow-origin: >-
             https://aiostack.in,https://www.aiostack.in,https://*.aiostack.in
           alb.ingress.kubernetes.io/load-balancer-attributes: >-
@@ -120,9 +120,7 @@ patches:
             deletion_protection.enabled=true,
             routing.http2.enabled=true,
             routing.http.drop_invalid_header_fields.enabled=true,
-            access_logs.s3.enabled=true,
-            access_logs.s3.bucket=gulbarga-university-prod,
-            access_logs.s3.prefix=ELBLogs
+
 
       spec:
         rules:
@@ -276,7 +274,7 @@ patches:
       spec:
         parameters:
           objects: |
-            - objectName: arn:aws:secretsmanager:ap-south-1:399600302704:secret:Gulbarga-University-EXUnnL
+            - objectName: arn:aws:secretsmanager:ap-south-1:225989355798:secret:Gulbarga-Secrets-RQ9p0r
               objectAlias: ".env"
               objectType: "secretsmanager"
 

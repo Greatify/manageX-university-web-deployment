@@ -19,7 +19,7 @@ spec:
       labels:
         app: managex-university
       annotations:
-        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-27f27f8783dcaec22bdec45b5ed2f6a984c6a171-MNX-1254---Cannot-add-Concession-for-add-on-Fees"
+        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:prod-27f27f8783dcaec22bdec45b5ed2f6a984c6a171-v1.3"
     spec:
       serviceAccountName: university-service
       volumes:
@@ -58,7 +58,7 @@ spec:
             claimName: managex-university-pvc
       containers:
         - name: managex-university
-          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-27f27f8783dcaec22bdec45b5ed2f6a984c6a171-MNX-1254---Cannot-add-Concession-for-add-on-Fees
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:prod-27f27f8783dcaec22bdec45b5ed2f6a984c6a171-v1.3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

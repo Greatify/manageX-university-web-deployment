@@ -26,7 +26,7 @@ spec:
                   secretProviderClass: managex-university-secrets
           containers:
             - name: university-cronjob
-              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-27f27f8783dcaec22bdec45b5ed2f6a984c6a171-MNX-1254---Cannot-add-Concession-for-add-on-Fees
+              image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:prod-27f27f8783dcaec22bdec45b5ed2f6a984c6a171-v1.3
               command: ["php", "/var/www/html/artisan", "schedule:run"]
               volumeMounts:
                 - name: university-secrets

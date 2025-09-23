@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-2b5020a4fd89b3eb4ec7449678fd6901f0ea36de-Mnx-1253-staff-time-table-repo-pushed-by-surya1005
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-647b7e2259fa83c18463a339a02aed3767c629a7-Mnx-1224-staff-free-report-109-pushed-by-surya1005
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-2b5020a4fd89b3eb4ec7449678fd6901f0ea36de-Mnx-1253-staff-time-table-repo-pushed-by-surya1005 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-647b7e2259fa83c18463a339a02aed3767c629a7-Mnx-1224-staff-free-report-109-pushed-by-surya1005 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-2b5020a4fd89b3eb4ec7449678fd6901f0ea36de-Mnx-1253-staff-time-table-repo-pushed-by-surya1005
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-647b7e2259fa83c18463a339a02aed3767c629a7-Mnx-1224-staff-free-report-109-pushed-by-surya1005
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

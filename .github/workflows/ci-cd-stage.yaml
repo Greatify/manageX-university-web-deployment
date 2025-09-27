@@ -127,7 +127,7 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_STAGE }}:stage-${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
-          platforms: linux/amd64
+          platforms: linux/arm64
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             PHP_VERSION=8.3

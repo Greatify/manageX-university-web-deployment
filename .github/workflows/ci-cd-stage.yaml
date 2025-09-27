@@ -25,7 +25,7 @@ concurrency:
 jobs:        
   Authentication:
     name: Authentication
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Verify deployment password
         id: password-check
@@ -54,7 +54,7 @@ jobs:
 
   Docker-Build:
     name: Docker Build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [Authentication]
     environment: stage
     timeout-minutes: 30 
@@ -79,31 +79,13 @@ jobs:
         run: |
           echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          version: v0.12.0
-          driver-opts: |
-            image=moby/buildkit:v0.12.0
-          buildkitd-flags: |
-            --debug
-            --allow-insecure-entitlement security.insecure
-            --allow-insecure-entitlement network.host
-          config-inline: |
-            [registry."docker.io"]
-              mirrors = ["mirror.gcr.io"]
-            [worker.oci]
-              max-parallelism = 12
-  
-      - name: Free disk space
+      - name: Ensure Buildx is available
         run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          sudo apt-get clean
-          docker system prune -af
-          df -h 
+          docker buildx use flamboyant_haslett || docker buildx create --name flamboyant_haslett --use
+          docker buildx inspect --bootstrap
+  
+      - name: Prune Docker
+        run: docker system prune -af 
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -149,6 +131,7 @@ jobs:
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             PHP_VERSION=8.3
+            USE_BADPROXY=true
 
       - name: Move new cache to cache directory
         run: |
@@ -183,7 +166,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   Deploy-to-Stage:
     name: Stage Deployment
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [Docker-Build]  
     environment: stage
     timeout-minutes: 20

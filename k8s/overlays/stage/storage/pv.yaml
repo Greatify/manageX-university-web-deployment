@@ -4,11 +4,11 @@ metadata:
   name: managex-university-stage-pv
 spec:
   capacity:
-    storage: 10Gi
+    storage: 5Gi
   accessModes:
     - ReadWriteMany
   storageClassName: stage-university-sc
-  nfs:
-    path: /
-    server: fs-0d35931126fd9803a.efs.ap-south-1.amazonaws.com
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0143ec99fdb3c4b96
   persistentVolumeReclaimPolicy: Retain

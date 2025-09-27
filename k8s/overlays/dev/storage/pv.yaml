@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   storageClassName: dev-university-sc
-  nfs:
-    path: /
-    server: fs-0bddc55e3d9252ccc.efs.ap-south-1.amazonaws.com
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-05b0a6ca58b99504f
   persistentVolumeReclaimPolicy: Retain

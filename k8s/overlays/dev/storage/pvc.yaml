@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: managex-university-pvc
+  namespace: dev-managex-university
 spec:
   accessModes:
     - ReadWriteMany

@@ -18,6 +18,12 @@ on:
         required: true
         type: string
 
+      use_default_runner:
+        description: 'Run on default runner instead of self-hosted?'
+        required: true
+        type: boolean
+        default: false
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -25,7 +31,7 @@ concurrency:
 jobs:        
   Authentication:
     name: Authentication
-    runs-on: self-hosted
+    runs-on: ${{ github.event.inputs.use_default_runner == 'true' && 'ubuntu-latest' || 'self-hosted' }}
     steps:
       - name: Verify deployment password
         id: password-check
@@ -54,15 +60,10 @@ jobs:
 
   Docker-Build:
     name: Docker Build
-    runs-on: self-hosted
+    runs-on: ${{ github.event.inputs.use_default_runner == 'true' && 'ubuntu-latest' || 'self-hosted' }}
     needs: [Authentication]
     environment: stage
     timeout-minutes: 30 
-    strategy:
-      matrix:
-        node-version: [18.x]
-      max-parallel: 4
-      fail-fast: true
     outputs:
       commit_sha: ${{ steps.get-commit-sha.outputs.commit_sha }}
     steps:
@@ -166,7 +167,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   Deploy-to-Stage:
     name: Stage Deployment
-    runs-on: self-hosted
+    runs-on: ${{ github.event.inputs.use_default_runner == 'true' && 'ubuntu-latest' || 'self-hosted' }}
     needs: [Docker-Build]  
     environment: stage
     timeout-minutes: 20

@@ -41,8 +41,16 @@ jobs:
 
       - name: Update PHP Laravel deployment image tag and change cause
         run: |
-         sed -i "s|image: .*|image: ${{ env.LARAVEL_IMAGE }}|" k8s/overlays/dev/kustomization.yaml
-         sed -i "s|kubernetes.io/change-cause: .*|kubernetes.io/change-cause: Update to ${{ env.LARAVEL_IMAGE }} |" k8s/overlays/dev/kustomization.yaml
+          # Update image tags in the dev overlay kustomization file
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # macOS - BSD sed requires empty string after -i
+            sed -i '' "s|image: .*|image: ${{ env.LARAVEL_IMAGE }}|g" k8s/overlays/dev/kustomization.yaml
+            sed -i '' "s|kubernetes.io/change-cause: .*|kubernetes.io/change-cause: Update to ${{ env.LARAVEL_IMAGE }} |g" k8s/overlays/dev/kustomization.yaml
+          else
+            # Linux - GNU sed
+            sed -i "s|image: .*|image: ${{ env.LARAVEL_IMAGE }}|g" k8s/overlays/dev/kustomization.yaml
+            sed -i "s|kubernetes.io/change-cause: .*|kubernetes.io/change-cause: Update to ${{ env.LARAVEL_IMAGE }} |g" k8s/overlays/dev/kustomization.yaml
+          fi
 
       - name: Commit and Push Changes
         run: |

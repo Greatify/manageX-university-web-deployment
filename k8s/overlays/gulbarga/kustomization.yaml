@@ -80,11 +80,11 @@ patches:
               - name: managex-university
                 resources:
                   requests:
-                    cpu: 300m
-                    memory: 512Mi
+                    cpu: "1"
+                    memory: 4Gi
                   limits:
-                    cpu: 500m
-                    memory: 700Mi
+                    cpu: "2"
+                    memory: 8Gi
                 livenessProbe:
                   httpGet:
                     path: /

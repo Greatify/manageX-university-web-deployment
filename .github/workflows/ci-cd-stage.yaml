@@ -18,8 +18,8 @@ on:
         required: true
         type: string
 
-      use_default_runner:
-        description: 'Run on default runner instead of self-hosted?'
+      use_self_hosted_runner:
+        description: 'Run on self-hosted runner instead of default runner?'
         required: true
         type: boolean
         default: false
@@ -31,7 +31,7 @@ concurrency:
 jobs:        
   Authentication:
     name: Authentication
-    runs-on: ${{ github.event.inputs.use_default_runner == 'true' && 'ubuntu-24.04-arm' || 'self-hosted' }}
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     steps:
       - name: Verify deployment password
         id: password-check
@@ -60,7 +60,7 @@ jobs:
 
   Docker-Build:
     name: Docker Build
-    runs-on: ${{ github.event.inputs.use_default_runner == 'true' && 'ubuntu-24.04-arm' || 'self-hosted' }}
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     needs: [Authentication]
     environment: stage
     timeout-minutes: 30 
@@ -167,7 +167,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   Deploy-to-Stage:
     name: Stage Deployment
-    runs-on: ${{ github.event.inputs.use_default_runner == 'true' && 'ubuntu-24.04-arm' || 'self-hosted' }}
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     needs: [Docker-Build]  
     environment: stage
     timeout-minutes: 20

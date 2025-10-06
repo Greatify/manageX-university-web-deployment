@@ -19,7 +19,7 @@ on:
 jobs:
   Deploy-to-Dev:
     name: Deploy to Dev
-    runs-on: self-hosted
+    runs-on: ubuntu-24.04-arm
     environment: dev
     timeout-minutes: 20
     env:

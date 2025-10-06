@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-7f37b50d2ee90c3d78064008de87501d2bbf46f7-MNX-1318-todayclass-api-data-c
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e94046efbb0dea52d1215b761205067092cd30a8-MNX-1314-attendance-is-shown-a
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-7f37b50d2ee90c3d78064008de87501d2bbf46f7-MNX-1318-todayclass-api-data-c 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e94046efbb0dea52d1215b761205067092cd30a8-MNX-1314-attendance-is-shown-a 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-7f37b50d2ee90c3d78064008de87501d2bbf46f7-MNX-1318-todayclass-api-data-c
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e94046efbb0dea52d1215b761205067092cd30a8-MNX-1314-attendance-is-shown-a
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

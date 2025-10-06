@@ -3,21 +3,149 @@ name: Deploy to Development
 on:
   workflow_dispatch:
     inputs:
-      image:
-        description: 'Docker image to deploy'
+      deploy_branch:
+        description: 'Branch to deploy from source repo'
         required: true
+        type: string
+        default: 'greatify-dev'
       sha:
         description: 'Git SHA of the commit'
         required: true
+        type: string
       commit_message:
-        description: 'Sanitized commit message'
+        description: 'Original commit message'
         required: true
-      actor:
-        description: 'Sanitized actor name'
-        required: true
+        type: string
 
 jobs:
+
+  Dev-Docker-Build:
+    runs-on: ubuntu-24.04-arm
+    environment: dev
+    timeout-minutes: 30
+
+    steps:
+
+      - name: Display Build Information
+        run: |
+          echo "Branch: ${{ github.event.inputs.deploy_branch }}"
+          echo "Commit SHA: ${{ github.event.inputs.sha }}"
+          echo "Commit Message: ${{ github.event.inputs.commit_message }}"
+
+      - name: Checkout codebase
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.deploy_branch }}
+          repository: 'Greatify/manageX-university-web'
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: v0.12.0
+          driver-opts: |
+            image=moby/buildkit:v0.12.0
+          buildkitd-flags: |
+            --debug
+            --allow-insecure-entitlement security.insecure
+            --allow-insecure-entitlement network.host
+          config-inline: |
+            [registry."docker.io"]
+              mirrors = ["mirror.gcr.io"]
+            [worker.oci]
+              max-parallelism = 4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          docker system prune -af
+          df -h
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Sanitize tag
+        id: sanitize-tag
+        run: |
+          # Use tr command to explicitly replace spaces with hyphens in commit message
+          SANITIZED_COMMIT_MESSAGE=$(echo "${{ github.event.inputs.commit_message }}" | tr ' ' '-')
+          echo "Original commit message: ${{ github.event.inputs.commit_message }}"
+          echo "After space replacement in commit message: ${SANITIZED_COMMIT_MESSAGE}"
+          # Truncate commit message to 30 characters to avoid tag length issues
+          SANITIZED_COMMIT_MESSAGE=$(echo "${SANITIZED_COMMIT_MESSAGE}" | tr -cd 'a-zA-Z0-9-.' | cut -c 1-30)
+          echo "Final sanitized commit message: ${SANITIZED_COMMIT_MESSAGE}"
+          echo "sanitized_commit_message=${SANITIZED_COMMIT_MESSAGE}" >> $GITHUB_OUTPUT
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      
+      - name: Build and push PHP Laravel image to ECR
+        id: build-and-push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/managex_university:dev-${{ github.sha }}-${{ steps.sanitize-tag.outputs.sanitized_commit_message }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          platforms: linux/arm64
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+            PHP_VERSION=8.3
+            USE_BADPROXY=false
+
+      - name: Move new cache to cache directory
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache 
+
+      - name: Save image tag to file
+        run: |
+          echo "${{ steps.login-ecr.outputs.registry }}/managex_university:dev-${{ github.sha }}-${{ steps.sanitize-tag.outputs.sanitized_commit_message }}" > laravel_image_tag.txt
+
+      - name: Upload image tag files
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-tags
+          path: |
+            laravel_image_tag.txt
+          retention-days: 1
+          if-no-files-found: error
+          
+      - name: Notify on Docker Build Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+            status: failure
+            channel: managex-university
+            author_name: University Dev Docker Build Status
+            text: |
+              [❌] University Dev Docker Build: Failed
+              Commit: ${{ github.sha }} | By: @${{ github.actor }}
+              Message: ${{ github.event.inputs.commit_message }}
+        env:
+            SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
   Deploy-to-Dev:
+    needs: [Dev-Docker-Build]
     name: Deploy to Dev
     runs-on: ubuntu-24.04-arm
     environment: dev
@@ -32,25 +160,20 @@ jobs:
           ref: 'main'
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Set image tag from dispatch input
+      - name: Download image tag files
+        uses: actions/download-artifact@v4
+        with:
+          name: image-tags
+          path: .
+  
+      - name: Set image tag 
         run: |
-          echo "LARAVEL_IMAGE=${{ github.event.inputs.image }}" >> $GITHUB_ENV
-          echo "COMMIT_SHA=${{ github.event.inputs.sha }}" >> $GITHUB_ENV
-          echo "COMMIT_MESSAGE=${{ github.event.inputs.commit_message }}" >> $GITHUB_ENV
-          echo "ACTOR=${{ github.event.inputs.actor }}" >> $GITHUB_ENV
+          echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
 
       - name: Update PHP Laravel deployment image tag and change cause
         run: |
-          # Update image tags in the dev overlay kustomization file
-          if [[ "$RUNNER_OS" == "macOS" ]]; then
-            # macOS - BSD sed requires empty string after -i
-            sed -i '' "s|image: .*|image: ${{ env.LARAVEL_IMAGE }}|g" k8s/overlays/dev/kustomization.yaml
-            sed -i '' "s|kubernetes.io/change-cause: .*|kubernetes.io/change-cause: Update to ${{ env.LARAVEL_IMAGE }} |g" k8s/overlays/dev/kustomization.yaml
-          else
-            # Linux - GNU sed
-            sed -i "s|image: .*|image: ${{ env.LARAVEL_IMAGE }}|g" k8s/overlays/dev/kustomization.yaml
-            sed -i "s|kubernetes.io/change-cause: .*|kubernetes.io/change-cause: Update to ${{ env.LARAVEL_IMAGE }} |g" k8s/overlays/dev/kustomization.yaml
-          fi
+          sed -i "s|image: .*|image: ${{ env.LARAVEL_IMAGE }}|g" k8s/overlays/dev/kustomization.yaml
+          sed -i "s|kubernetes.io/change-cause: .*|kubernetes.io/change-cause: Update to ${{ env.LARAVEL_IMAGE }} |g" k8s/overlays/dev/kustomization.yaml
 
       - name: Commit and Push Changes
         run: |
@@ -96,7 +219,7 @@ jobs:
           author_name: University Dev Deployment Status
           text: |
             [${{ job.status == 'success' && '✅' || '❌' }}] University Dev Deployment: ${{ job.status }}
-            Commit: ${{ github.event.inputs.sha }} | By: @${{ github.event.inputs.actor }}
+            Commit: ${{ github.event.inputs.sha }} | By: @${{ github.actor }}
             Message: ${{ github.event.inputs.commit_message }}
             *URL:* ${{env.URL}}
         env:

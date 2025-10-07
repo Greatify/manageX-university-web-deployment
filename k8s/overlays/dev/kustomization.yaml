@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c440fdaa608368a8e201301249c005131b7e0d2f-MNX-856-new-flow-for-AcademicS
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-add4cdf70da405c958dc7cf62605a4e4456f9f9e-MNX-1298-1137
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c440fdaa608368a8e201301249c005131b7e0d2f-MNX-856-new-flow-for-AcademicS 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-add4cdf70da405c958dc7cf62605a4e4456f9f9e-MNX-1298-1137 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c440fdaa608368a8e201301249c005131b7e0d2f-MNX-856-new-flow-for-AcademicS
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-add4cdf70da405c958dc7cf62605a4e4456f9f9e-MNX-1298-1137
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

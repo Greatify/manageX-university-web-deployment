@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-50eb98a9c576dcccf4dc6da6be4644ab15a0b51a-Remove-CICD-directory-and-its-
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-f65e007147206bfd5bb081a78381839e507bcf84-MNX-1341-University---Parent-A
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-50eb98a9c576dcccf4dc6da6be4644ab15a0b51a-Remove-CICD-directory-and-its- 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-f65e007147206bfd5bb081a78381839e507bcf84-MNX-1341-University---Parent-A 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-50eb98a9c576dcccf4dc6da6be4644ab15a0b51a-Remove-CICD-directory-and-its-
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-f65e007147206bfd5bb081a78381839e507bcf84-MNX-1341-University---Parent-A
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

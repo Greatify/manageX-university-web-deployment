@@ -19,7 +19,7 @@ spec:
       labels:
         app: managex-university
       annotations:
-        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-464265913a67687eb853d8bfcd787aa0c752e855-MNX-1379-PR1155"
+        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-0d0cd8b275af3aa5dbe44b4a41c7f1d24a5f8a9d-MNX-1339-PR1159"
     spec:
       serviceAccountName: university-service
       volumes:
@@ -58,7 +58,7 @@ spec:
             claimName: managex-university-pvc
       containers:
         - name: managex-university
-          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-464265913a67687eb853d8bfcd787aa0c752e855-MNX-1379-PR1155
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-0d0cd8b275af3aa5dbe44b4a41c7f1d24a5f8a9d-MNX-1339-PR1159
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

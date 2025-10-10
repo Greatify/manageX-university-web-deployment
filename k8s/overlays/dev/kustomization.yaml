@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-14a430037544914dad4f0102fd7ec3b535cb06c0-MNX-1295-University---Manage-F
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-33e56fd4e130003d215b74121af5ea0727cc079e-MNX-1361-student-fee-GST-and-p
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-14a430037544914dad4f0102fd7ec3b535cb06c0-MNX-1295-University---Manage-F 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-33e56fd4e130003d215b74121af5ea0727cc079e-MNX-1361-student-fee-GST-and-p 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-14a430037544914dad4f0102fd7ec3b535cb06c0-MNX-1295-University---Manage-F
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-33e56fd4e130003d215b74121af5ea0727cc079e-MNX-1361-student-fee-GST-and-p
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

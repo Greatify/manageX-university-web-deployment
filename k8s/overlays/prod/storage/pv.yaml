@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: managex-university-prod-pv
+  name: managex-university-production
 spec:
   capacity:
-    storage: 20Gi
+    storage: 10Gi
   accessModes:
     - ReadWriteMany
-  storageClassName: prod-university-sc
-  nfs:
-    path: /
-    server: fs-099e1ece5437168ca.efs.ap-south-1.amazonaws.com
+  storageClassName: managex-university-production
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: fs-0e48d623492b3a691
   persistentVolumeReclaimPolicy: Retain

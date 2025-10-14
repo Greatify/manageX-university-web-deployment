@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: university-pdb
+  labels:
+    app: managex-university
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: managex-university

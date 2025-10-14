@@ -37,6 +37,12 @@ on:
         required: false
         type: string
 
+      use_self_hosted_runner:
+        description: 'Run on self-hosted runner instead of default runner?'
+        required: true
+        type: boolean
+        default: false
+
 
 
 
@@ -47,7 +53,7 @@ concurrency:
 jobs:        
   Authentication:
     name: Authentication
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     steps:
       - name: Verify deployment password
         id: password-check
@@ -75,7 +81,7 @@ jobs:
 
   Docker-Build:
     name: Docker Build
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     needs: [Authentication]
     if: github.event.inputs.full_deploy == 'true'
     environment: production
@@ -167,7 +173,7 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_PROD }}:prod-${{ steps.get-commit-sha.outputs.commit_sha }}-${{ steps.sanitize-tag.outputs.sanitized_tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
-          platforms: linux/amd64
+          platforms: linux/arm64
           build-args: |
             BUILDKIT_INLINE_CACHE=1
             PHP_VERSION=8.3
@@ -206,7 +212,7 @@ jobs:
 
   ReTag-Image:
     name: ReTag Image
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     needs: [Authentication]
     if: github.event.inputs.full_deploy == 'false' && github.event.inputs.re_tag != ''
     environment: production
@@ -282,7 +288,7 @@ jobs:
   Deploy-to-Production:
     name: Deploy to Production
     needs: [Docker-Build, ReTag-Image]
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     if: |
       always() && 
       github.event.inputs.prod_choice == 'true' && 
@@ -380,7 +386,7 @@ jobs:
       ((github.event.inputs.full_deploy == 'true' && (needs.Docker-Build.result == 'success' )) ||
        (github.event.inputs.re_tag != '' && (needs.ReTag-Image.result == 'success'))) &&
       (github.event.inputs.prod_choice != 'true' || (needs.Deploy-to-Production.result == 'success'))
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
     environment: gulbarga-production
     env:
       CLOUDFRONT_DISTRIBUTION: ${{ secrets.GULBARGA_CLOUDFRONT_DISTRIBUTION }}

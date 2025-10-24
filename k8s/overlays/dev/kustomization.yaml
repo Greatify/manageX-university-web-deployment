@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-6a2f88ce4df38dc548e4c23a6ebd1a0d27e30499-MNX-1361-fee-creation-js-issue
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-687fc7987bcd822c28e300cf9d68b95b6c2641c0-fine-amount-changed-to-string-
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-6a2f88ce4df38dc548e4c23a6ebd1a0d27e30499-MNX-1361-fee-creation-js-issue 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-687fc7987bcd822c28e300cf9d68b95b6c2641c0-fine-amount-changed-to-string- 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-6a2f88ce4df38dc548e4c23a6ebd1a0d27e30499-MNX-1361-fee-creation-js-issue
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-687fc7987bcd822c28e300cf9d68b95b6c2641c0-fine-amount-changed-to-string-
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

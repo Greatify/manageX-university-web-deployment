@@ -18,11 +18,11 @@ on:
         required: false
         type: boolean
         default: false
-      gulbarga_choice:
-        description: 'Deploy To Gulbarga Production'
-        required: false
-        type: boolean
-        default: false
+      # gulbarga_choice:
+      #   description: 'Deploy To Gulbarga Production'
+      #   required: false
+      #   type: boolean
+      #   default: false
       full_deploy:
         description: 'Build New Image and Deploy to Production & Gulbarga'
         required: false
@@ -374,105 +374,105 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   
 
-  Deploy-to-Gulbarga:
-    name: Deploy to Gulbarga
-    needs: 
-      - Docker-Build
-      - ReTag-Image
-      - Deploy-to-Production
-    if: |
-      always() && 
-      github.event.inputs.gulbarga_choice == 'true' && 
-      ((github.event.inputs.full_deploy == 'true' && (needs.Docker-Build.result == 'success' )) ||
-       (github.event.inputs.re_tag != '' && (needs.ReTag-Image.result == 'success'))) &&
-      (github.event.inputs.prod_choice != 'true' || (needs.Deploy-to-Production.result == 'success'))
-    runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
-    environment: gulbarga-production
-    env:
-      CLOUDFRONT_DISTRIBUTION: ${{ secrets.GULBARGA_CLOUDFRONT_DISTRIBUTION }}
-      URL: ${{ vars.GULBARGA_URL }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: 'main'
-          fetch-depth: 0
+  # Deploy-to-Gulbarga:
+  #   name: Deploy to Gulbarga
+  #   needs: 
+  #     - Docker-Build
+  #     - ReTag-Image
+  #     - Deploy-to-Production
+  #   if: |
+  #     always() && 
+  #     github.event.inputs.gulbarga_choice == 'true' && 
+  #     ((github.event.inputs.full_deploy == 'true' && (needs.Docker-Build.result == 'success' )) ||
+  #      (github.event.inputs.re_tag != '' && (needs.ReTag-Image.result == 'success'))) &&
+  #     (github.event.inputs.prod_choice != 'true' || (needs.Deploy-to-Production.result == 'success'))
+  #   runs-on: ${{ github.event.inputs.use_self_hosted_runner == 'true' && 'self-hosted' || 'ubuntu-24.04-arm' }}
+  #   environment: gulbarga-production
+  #   env:
+  #     CLOUDFRONT_DISTRIBUTION: ${{ secrets.GULBARGA_CLOUDFRONT_DISTRIBUTION }}
+  #     URL: ${{ vars.GULBARGA_URL }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: 'main'
+  #         fetch-depth: 0
 
-      # These steps are only needed when deploying to Gulbarga without Production
-      - name: Download image tag files (Gulbarga Only)
-        uses: actions/download-artifact@v4
-        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
-            github.event.inputs.gulbarga_choice == 'true' && 
-            github.event.inputs.prod_choice != 'true'
-        with:
-          name: image-tags
-          path: .
+  #     # These steps are only needed when deploying to Gulbarga without Production
+  #     - name: Download image tag files (Gulbarga Only)
+  #       uses: actions/download-artifact@v4
+  #       if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+  #           github.event.inputs.gulbarga_choice == 'true' && 
+  #           github.event.inputs.prod_choice != 'true'
+  #       with:
+  #         name: image-tags
+  #         path: .
     
-      - name: Set image tags as environment variables (Gulbarga Only)
-        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
-            github.event.inputs.gulbarga_choice == 'true' && 
-            github.event.inputs.prod_choice != 'true'
-        run: |
-          echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
+  #     - name: Set image tags as environment variables (Gulbarga Only)
+  #       if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+  #           github.event.inputs.gulbarga_choice == 'true' && 
+  #           github.event.inputs.prod_choice != 'true'
+  #       run: |
+  #         echo "LARAVEL_IMAGE=$(<laravel_image_tag.txt)" >> $GITHUB_ENV
   
-      - name: Update PHP Laravel deployment image tag and change cause (Gulbarga Only)
-        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
-            github.event.inputs.gulbarga_choice == 'true' && 
-            github.event.inputs.prod_choice != 'true'
-        run: |
-          yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
-          yq -i '.spec.template.metadata.annotations."kubernetes.io/change-cause" = "Updated to ${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
-          yq -i '.spec.jobTemplate.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/cronjob/base-cronjob.yaml
+  #     - name: Update PHP Laravel deployment image tag and change cause (Gulbarga Only)
+  #       if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+  #           github.event.inputs.gulbarga_choice == 'true' && 
+  #           github.event.inputs.prod_choice != 'true'
+  #       run: |
+  #         yq -i '.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
+  #         yq -i '.spec.template.metadata.annotations."kubernetes.io/change-cause" = "Updated to ${{ env.LARAVEL_IMAGE }}"' k8s/base/deployment/base-deploy.yaml
+  #         yq -i '.spec.jobTemplate.spec.template.spec.containers[0].image = "${{ env.LARAVEL_IMAGE }}"' k8s/base/cronjob/base-cronjob.yaml
   
-      - name: Commit and Push Image Tags (Gulbarga Only)
-        if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
-            github.event.inputs.gulbarga_choice == 'true' && 
-            github.event.inputs.prod_choice != 'true'
-        run: |
-          git pull origin main
-          git config --local user.email "suriyanarayanan.s@greatify.ai"
-          git config --local user.name "surya1005"
-          git add -f k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
-          if git diff --cached --quiet; then
-            echo "No changes to commit, skipping commit and push"
-          else
-            echo "Changes detected, committing and pushing"
-            git commit -m "Update deployment image and change cause [Automated] For Gulbarga Only"
-            git push origin main
-          fi
+  #     - name: Commit and Push Image Tags (Gulbarga Only)
+  #       if: (github.event.inputs.full_deploy == 'true' || github.event.inputs.re_tag != '') && 
+  #           github.event.inputs.gulbarga_choice == 'true' && 
+  #           github.event.inputs.prod_choice != 'true'
+  #       run: |
+  #         git pull origin main
+  #         git config --local user.email "suriyanarayanan.s@greatify.ai"
+  #         git config --local user.name "surya1005"
+  #         git add -f k8s/base/deployment/base-deploy.yaml k8s/base/cronjob/base-cronjob.yaml
+  #         if git diff --cached --quiet; then
+  #           echo "No changes to commit, skipping commit and push"
+  #         else
+  #           echo "Changes detected, committing and pushing"
+  #           git commit -m "Update deployment image and change cause [Automated] For Gulbarga Only"
+  #           git push origin main
+  #         fi
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.GULBARGA_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.GULBARGA_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.GULBARGA_AWS_REGION }}
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v3
+  #       with:
+  #         aws-access-key-id: ${{ secrets.GULBARGA_AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.GULBARGA_AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.GULBARGA_AWS_REGION }}
 
-      - name: Update kube config
-        run: aws eks update-kubeconfig --name ${{ secrets.GULBARGA_CLUSTER_NAME }} --region ${{ secrets.GULBARGA_AWS_REGION }}
+  #     - name: Update kube config
+  #       run: aws eks update-kubeconfig --name ${{ secrets.GULBARGA_CLUSTER_NAME }} --region ${{ secrets.GULBARGA_AWS_REGION }}
 
-      - name: Apply K8s  Manifests To Gulbarga Production With Validation
-        run: |
-          kubectl apply -k k8s/overlays/gulbarga --validate=true
-          kubectl rollout status deployment/gulbarga-university-production -n gulbarga-university-production --timeout=300s
+  #     - name: Apply K8s  Manifests To Gulbarga Production With Validation
+  #       run: |
+  #         kubectl apply -k k8s/overlays/gulbarga --validate=true
+  #         kubectl rollout status deployment/gulbarga-university-production -n gulbarga-university-production --timeout=300s
 
-      - name: CloudFront Invalidation
-        run: |
-          INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --paths "/*" --query 'Invalidation.Id' --output text)
-          echo "Created invalidation: $INVALIDATION_ID"
-          aws cloudfront wait invalidation-completed --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --id $INVALIDATION_ID
+  #     - name: CloudFront Invalidation
+  #       run: |
+  #         INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --paths "/*" --query 'Invalidation.Id' --output text)
+  #         echo "Created invalidation: $INVALIDATION_ID"
+  #         aws cloudfront wait invalidation-completed --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION }} --id $INVALIDATION_ID
           
-      - name: Slack Notification On Deployment Status
-        if: always()
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          channel: managex-university
-          author_name: Gulbarga Production Deployment Status
-          text: |
-            [${{ job.status == 'success' && '✅' || '❌' }}] Gulbarga Production Deployment: ${{ job.status }}
-            Commit: ${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || needs.ReTag-Image.outputs.commit_sha }} | By: @${{ github.actor }}
-            Message: ${{ github.event.inputs.prod_tag }}
-            *URL:* ${{env.URL}}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  #     - name: Slack Notification On Deployment Status
+  #       if: always()
+  #       uses: 8398a7/action-slack@v3
+  #       with:
+  #         status: ${{ job.status }}
+  #         channel: managex-university
+  #         author_name: Gulbarga Production Deployment Status
+  #         text: |
+  #           [${{ job.status == 'success' && '✅' || '❌' }}] Gulbarga Production Deployment: ${{ job.status }}
+  #           Commit: ${{ github.event.inputs.full_deploy == 'true' && needs.Docker-Build.outputs.commit_sha || needs.ReTag-Image.outputs.commit_sha }} | By: @${{ github.actor }}
+  #           Message: ${{ github.event.inputs.prod_tag }}
+  #           *URL:* ${{env.URL}}
+  #       env:
+  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c9f6b770d9022a8807dfb65bdfa660fa50f118ba-MNX-707-MNX-707---Proposed-Cou
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-d9d0dbbfcdf6b0022b6ed609530b8c2ea428810a-MNX-1283---Addon-fee-view-upda
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c9f6b770d9022a8807dfb65bdfa660fa50f118ba-MNX-707-MNX-707---Proposed-Cou 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-d9d0dbbfcdf6b0022b6ed609530b8c2ea428810a-MNX-1283---Addon-fee-view-upda 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c9f6b770d9022a8807dfb65bdfa660fa50f118ba-MNX-707-MNX-707---Proposed-Cou
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-d9d0dbbfcdf6b0022b6ed609530b8c2ea428810a-MNX-1283---Addon-fee-view-upda
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

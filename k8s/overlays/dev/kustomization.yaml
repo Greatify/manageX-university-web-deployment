@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-a7c7365c9c1ea02e4fc40306a15c9cc39658dc11-MNX-707-1207
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-0e1b8a64b97fc9f3d4dd0fd841867db773e717f2-MNX-1321-bio-metric-migrations
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-a7c7365c9c1ea02e4fc40306a15c9cc39658dc11-MNX-707-1207 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-0e1b8a64b97fc9f3d4dd0fd841867db773e717f2-MNX-1321-bio-metric-migrations 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-a7c7365c9c1ea02e4fc40306a15c9cc39658dc11-MNX-707-1207
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-0e1b8a64b97fc9f3d4dd0fd841867db773e717f2-MNX-1321-bio-metric-migrations
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

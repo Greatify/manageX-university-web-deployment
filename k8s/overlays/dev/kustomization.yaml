@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-0516443328f711b7503471b4bc6568433066525d-MNX-1447-teacher-appweb-code-u
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-8c8b34d331e91095a340c357bdb152781b0fd31a-Merge-branch-main-into-greatif
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-0516443328f711b7503471b4bc6568433066525d-MNX-1447-teacher-appweb-code-u 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-8c8b34d331e91095a340c357bdb152781b0fd31a-Merge-branch-main-into-greatif 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-0516443328f711b7503471b4bc6568433066525d-MNX-1447-teacher-appweb-code-u
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-8c8b34d331e91095a340c357bdb152781b0fd31a-Merge-branch-main-into-greatif
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

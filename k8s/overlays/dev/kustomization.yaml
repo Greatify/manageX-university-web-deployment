@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-8c8b34d331e91095a340c357bdb152781b0fd31a-Merge-branch-main-into-greatif
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-b337f5446ee0b40729b7748560a6a7d450af2aab-MNX-1406--academic-year-create
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-8c8b34d331e91095a340c357bdb152781b0fd31a-Merge-branch-main-into-greatif 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-b337f5446ee0b40729b7748560a6a7d450af2aab-MNX-1406--academic-year-create 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-8c8b34d331e91095a340c357bdb152781b0fd31a-Merge-branch-main-into-greatif
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-b337f5446ee0b40729b7748560a6a7d450af2aab-MNX-1406--academic-year-create
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-9b6c8c83559d668149c8d441f1ceddacc5404213-MNX-1345-job-changes-1245--Co-
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e24862868abd4a2078429742dcf37d65b05852f5-MNX-1555-1556-1557-timetable-c
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-9b6c8c83559d668149c8d441f1ceddacc5404213-MNX-1345-job-changes-1245--Co- 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e24862868abd4a2078429742dcf37d65b05852f5-MNX-1555-1556-1557-timetable-c 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-9b6c8c83559d668149c8d441f1ceddacc5404213-MNX-1345-job-changes-1245--Co-
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e24862868abd4a2078429742dcf37d65b05852f5-MNX-1555-1556-1557-timetable-c
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

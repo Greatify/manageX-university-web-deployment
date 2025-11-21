@@ -19,7 +19,7 @@ spec:
       labels:
         app: managex-university
       annotations:
-        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:prod-53eee171dda262c8702327b11a0eb36fcfb6fa1a-MNX-1543-1542-1535-HotFix-PR1240"
+        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-39719cb0e6d977c4da7641fc4f7ed77746b8011a-Biometric-PR1246"
     spec:
       serviceAccountName: university-service
       volumes:
@@ -58,7 +58,7 @@ spec:
             claimName: managex-university-pvc
       containers:
         - name: managex-university
-          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:prod-53eee171dda262c8702327b11a0eb36fcfb6fa1a-MNX-1543-1542-1535-HotFix-PR1240
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-39719cb0e6d977c4da7641fc4f7ed77746b8011a-Biometric-PR1246
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80

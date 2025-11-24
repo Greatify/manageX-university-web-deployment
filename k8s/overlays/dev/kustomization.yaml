@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c42eaeb10e471e44e1710d0bd619e5b4b528a41d-changes-to-implement-classBatc
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-3b8ad284d4f3e292d1c5dc49be9316944a11b88d-MNX-707-1257
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c42eaeb10e471e44e1710d0bd619e5b4b528a41d-changes-to-implement-classBatc 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-3b8ad284d4f3e292d1c5dc49be9316944a11b88d-MNX-707-1257 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-c42eaeb10e471e44e1710d0bd619e5b4b528a41d-changes-to-implement-classBatc
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-3b8ad284d4f3e292d1c5dc49be9316944a11b88d-MNX-707-1257
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

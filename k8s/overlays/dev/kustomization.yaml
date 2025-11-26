@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-583bc096a6e7e2c01b510ecfa929a695a15a846b-MNX-1408-1273
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-6e422f0576c0320e6aa3b7c5bbf80b0855419c00-MNX-1578---Admin-leave-type-ed
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-583bc096a6e7e2c01b510ecfa929a695a15a846b-MNX-1408-1273 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-6e422f0576c0320e6aa3b7c5bbf80b0855419c00-MNX-1578---Admin-leave-type-ed 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-583bc096a6e7e2c01b510ecfa929a695a15a846b-MNX-1408-1273
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-6e422f0576c0320e6aa3b7c5bbf80b0855419c00-MNX-1578---Admin-leave-type-ed
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

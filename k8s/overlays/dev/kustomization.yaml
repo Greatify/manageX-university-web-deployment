@@ -34,7 +34,7 @@ patches:
               spec:
                 containers:
                   - name: university-cronjob
-                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e71179e5c3bedab343f7fffc0f65443243218713-Added-Ignore-Platform-Request-
+                    image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-d393e7ac1e400232c745f9cde34367d4b0264809-MNX-1580Add-try-catch-1280
 
   # Patch for Deployment configuration
   - target:
@@ -53,11 +53,11 @@ patches:
             labels:
               app: managex-university
             annotations:
-              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e71179e5c3bedab343f7fffc0f65443243218713-Added-Ignore-Platform-Request- 
+              kubernetes.io/change-cause: Update to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-d393e7ac1e400232c745f9cde34367d4b0264809-MNX-1580Add-try-catch-1280 
           spec:
             containers:
               - name: managex-university
-                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-e71179e5c3bedab343f7fffc0f65443243218713-Added-Ignore-Platform-Request-
+                image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:dev-d393e7ac1e400232c745f9cde34367d4b0264809-MNX-1580Add-try-catch-1280
                 resources: null  # Commented out for dev environment
                 # resources:
                 #   requests:

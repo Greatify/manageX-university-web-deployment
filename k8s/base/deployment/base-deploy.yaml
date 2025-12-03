@@ -19,7 +19,7 @@ spec:
       labels:
         app: managex-university
       annotations:
-        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-0c76d68bfe06a6441983a768f145074aceaedc02-MNX-1578-PR1276"
+        kubernetes.io/change-cause: "Updated to 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-2b646031bfb10f8785f9a96648e8728c2f6c3e30-Added-Ignore-Platform-Request-in-Dockerfile-PR-1294"
     spec:
       serviceAccountName: university-service
       volumes:
@@ -58,7 +58,7 @@ spec:
             claimName: managex-university-pvc
       containers:
         - name: managex-university
-          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-0c76d68bfe06a6441983a768f145074aceaedc02-MNX-1578-PR1276
+          image: 399600302704.dkr.ecr.ap-south-1.amazonaws.com/managex_university:stage-2b646031bfb10f8785f9a96648e8728c2f6c3e30-Added-Ignore-Platform-Request-in-Dockerfile-PR-1294
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
